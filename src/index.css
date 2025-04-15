@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body{
+    background-image: url(../public/Images/bg.jpg);
+    background-size: cover;
+    background-position: center;     /* Center the image */
+    background-attachment: fixed;    /* Make the background stay fixed while scrolling */
+    background-repeat: no-repeat;    /* Ensure the background doesn't repeat */
+    height: 100vh;                   /* Make the body cover the whole viewport height */
+    margin: 0; 
+}

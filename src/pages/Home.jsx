@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { fetchupcominganimedata } from '../api/jikan'
 import AnimeCard from '../components/AnimeCard';
-import { data } from 'autoprefixer';
+
 
 const Home = () => {
    const [animelist,setAnimelist] = useState([]);
@@ -14,12 +14,19 @@ const Home = () => {
      })
      .catch((error)=>{
       console.log(error);
-     })
-  
-     
+     })  
    },[])
+
+   if(loading){
+    return (
+      <div className='text-white text-center'>
+      <p>Loading....</p>
+      </div>
+    )
+   }
+
   return (
-   <section className='bg-cyan-950'>
+   <section >
     <div>
       <h1 className='text-blue-300'>Upcominganime</h1>
       {animelist.map((anime) => (
