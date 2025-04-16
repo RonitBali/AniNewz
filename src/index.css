@@ -2,12 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 body{
-    background-image: url(../public/Images/bg.jpg);
+    background-image: url(../Images/bg-3.jpg);
     background-size: cover;
-    background-position: center;     /* Center the image */
-    background-attachment: fixed;    /* Make the background stay fixed while scrolling */
-    background-repeat: no-repeat;    /* Ensure the background doesn't repeat */
-    height: 100vh;                   /* Make the body cover the whole viewport height */
+    background-position: center;    
+    background-attachment: fixed;    
+    background-repeat: no-repeat;   
+    height: 100vh;                  
     margin: 0; 
 }
+
+::-webkit-scrollbar{
+    height: 50px;
+    width: 5px;
+   
+}
+
+::-webkit-scrollbar-track{
+    background: #1f1f1f;
+}
+
+::-webkit-scrollbar-thumb{
+    background: #ec4899; 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #db2777; 
+  }
+  

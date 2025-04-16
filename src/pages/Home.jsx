@@ -1,39 +1,78 @@
 import React, { useEffect, useState } from 'react'
 import { fetchupcominganimedata } from '../api/jikan'
 import AnimeCard from '../components/AnimeCard';
+import { motion } from 'framer-motion';
+import { DefaultLoaderExample } from '../components/Loader';
 
 
 const Home = () => {
-   const [animelist,setAnimelist] = useState([]);
-   const [loading,setLoading] = useState(true);
+  const [animelist, setAnimelist] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchquery, setSearchquery] = useState('');
+  const [filteredanime, setFilteredanime] = useState('');
 
-   useEffect(()=>{
-     fetchupcominganimedata().then((data)=>{
+  useEffect(() => {
+    fetchupcominganimedata().then((data) => {
       setAnimelist(data);
       setLoading(false);
-     })
-     .catch((error)=>{
-      console.log(error);
-     })  
-   },[])
+    })
+      .catch((error) => {
+        console.log(error);
+      })
+  }, [])
 
-   if(loading){
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchquery(query);
+  }
+
+  const filtered = animelist.filter((anime) =>
+    anime.title.toLowerCase().includes(searchquery)
+  );
+  setFilteredanime(filtered)
+
+
+  if (loading) {
     return (
-      <div className='text-white text-center'>
-      <p>Loading....</p>
-      </div>
+      <DefaultLoaderExample />
     )
-   }
+  }
 
   return (
-   <section >
-    <div>
+    <section >
+      {/* <div>
       <h1 className='text-blue-300'>Upcominganime</h1>
       {animelist.map((anime) => (
         <AnimeCard key={anime.mal_id} anime={anime}/>
       ))};
-    </div>
-   </section>
+    </div> */}
+      <div className="relative top-[-100px] z-10 flex flex-col items-center justify-center text-center text-white min-h-screen px-4">
+        <motion.h1
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2 }}
+          className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg -"
+        >
+          Welcome to <span className='text-pink-500 font-bold shadow-sm'> AniNewz</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="text-xl md:text-2xl font-light max-w-xl drop-shadow-md"
+        >
+          Stay updated with the latest upcoming anime releases and news!
+        </motion.p>
+
+      </div>
+      <div >
+        <h1 className=' text-white text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg text-center'>Upcoming-anime</h1>
+        {animelist.map((anime) => (
+          <AnimeCard key={anime.mal_id} anime={anime} />
+        ))};
+      </div>
+    </section>
   )
 }
 
