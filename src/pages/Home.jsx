@@ -8,8 +8,8 @@ import { DefaultLoaderExample } from '../components/Loader';
 const Home = () => {
   const [animelist, setAnimelist] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchquery, setSearchquery] = useState('');
-  const [filteredanime, setFilteredanime] = useState('');
+  
+  // const [filteredanime, setFilteredanime] = useState('');
 
   useEffect(() => {
     fetchupcominganimedata().then((data) => {
@@ -21,15 +21,12 @@ const Home = () => {
       })
   }, [])
 
-  const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    setSearchquery(query);
-  }
+  
 
-  const filtered = animelist.filter((anime) =>
-    anime.title.toLowerCase().includes(searchquery)
-  );
-  setFilteredanime(filtered)
+  // const filtered = animelist.filter((anime) =>
+  //   anime.title.toLowerCase().includes(searchquery)
+  // );
+  // setFilteredanime(filtered)
 
 
   if (loading) {
