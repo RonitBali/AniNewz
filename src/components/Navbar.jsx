@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Search, Menu } from "lucide-react";
 import Authentication from "./Authentication";
+import { Link } from 'react-router-dom';
 
-export default function Navbar({searchquery , setSearchquery}) {
+
+export default function Navbar({ searchquery, setSearchquery }) {
   const [isOpen, setIsOpen] = useState(false);
- 
 
-  const handleSearch = (e) =>{
-      const query = e.target.value.toLowerCase()
-      setSearchquery(query)
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase()
+    setSearchquery(query)
   }
   return (
     <nav className="bg-[#1f1f1f]/60 backdrop-blur-md text-white shadow-md sticky top-0 z-50 ">
@@ -16,10 +18,10 @@ export default function Navbar({searchquery , setSearchquery}) {
         <div className="text-4xl font-bold text-pink-500 ">AniNewz</div>
 
         <div className="hidden md:flex space-x-6 text-sm font-medium">
-          <a href="/" className="hover:text-pink-400  text-xl">Upcoming</a>
-          <a href="/topanime" className="hover:text-pink-400  text-xl">Top Anime</a>
-          <a href="/seasonal" className="hover:text-pink-400  text-xl">Seasonal</a>
-          <a href="/favorites" className="hover:text-pink-400  text-xl">Watchlist</a>
+          <Link to="/" className="hover:text-pink-400 text-xl">Upcoming</Link>
+          <Link to="/topanime" className="hover:text-pink-400 text-xl">Top Anime</Link>
+          <Link to="/seasonal" className="hover:text-pink-400 text-xl">Seasonal</Link>
+          <Link to="/favorites" className="hover:text-pink-400 text-xl">Watchlist</Link>
         </div>
 
         <div className="hidden md:flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-md">
@@ -27,11 +29,13 @@ export default function Navbar({searchquery , setSearchquery}) {
           <input
             type="text"
             placeholder="Search anime..."
+            value={searchquery}
+            onChange={handleSearch}
             className="bg-transparent outline-none text-md text-white"
           />
-         
+
         </div>
-        <Authentication/>
+        <Authentication />
 
         {/* Mobile menu icon */}
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden">
@@ -42,10 +46,10 @@ export default function Navbar({searchquery , setSearchquery}) {
       {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden bg-[#2a2a2a] px-4 pb-4 space-y-2 text-sm">
-          <a href="/" className="block hover:text-pink-400">Upcoming</a>
-          <a href="/top" className="block hover:text-pink-400">Top Anime</a>
-          <a href="/seasonal" className="block hover:text-pink-400">Seasonal</a>
-          <a href="/favorites" className="block hover:text-pink-400">Watchlist</a>
+          <Link to="/" className="block hover:text-pink-400">Upcoming</Link>
+          <Link to="/topanime" className="block hover:text-pink-400">Top Anime</Link>
+          <Link to="/seasonal" className="block hover:text-pink-400">Seasonal</Link>
+          <Link to="/favorites" className="block hover:text-pink-400">Watchlist</Link>
           <input
             type="text"
             placeholder="Search anime..."

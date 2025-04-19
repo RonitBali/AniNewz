@@ -18,6 +18,7 @@ const Home = () => {
     })
       .catch((error) => {
         console.log(error);
+        setLoading(false);
       })
   }, [])
 
@@ -67,7 +68,7 @@ const Home = () => {
         <h1 className=' text-white text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg text-center'>Upcoming-anime</h1>
         {animelist.map((anime) => (
           <AnimeCard key={anime.mal_id} anime={anime} />
-        ))};
+        ))}
       </div>
     </section>
   )
