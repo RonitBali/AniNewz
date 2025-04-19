@@ -1,29 +1,29 @@
 import './App.css'
 import Home from './pages/Home'
-import AnimeCard from './components/AnimeCard'
 import Navbar from './components/Navbar'
 import Watchlist from './components/Watchlist'
-import { useState } from 'react'
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TopAnime from './pages/TopAnime'
+import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Authentication from './components/Authentication'
 
 
 function App() {
   const [searchquery, setSearchquery] = useState('');
+  const [user, setUser] = useState(null); // new
 
   return (
     <>
       <Router>
-      {/* <Navbar searchquery={searchquery} setSearchquery={setSearchquery} /> */}
+        <Navbar searchquery={searchquery} setSearchquery={setSearchquery} />
+        <Authentication onUserChange={setUser} />
         <Routes>
-          <Route path='/' element={<Home searchquery={searchquery} />} />
+          <Route path='/' element={<Home/>} />
           <Route path='/topanime' element={<TopAnime />} />
-          <Route path='/watchlist' element={<Watchlist />} />
+          <Route path='/watchlist' element={<Watchlist userId={user?.uid} />} />
         </Routes>
       </Router>
     </>
-  )
+  );
 }
-
-export default App
+export default App;

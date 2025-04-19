@@ -3,19 +3,18 @@ import { Search, Menu } from "lucide-react";
 import Authentication from "./Authentication";
 import { Link } from 'react-router-dom';
 
-
 export default function Navbar({ searchquery, setSearchquery }) {
   const [isOpen, setIsOpen] = useState(false);
 
-
   const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase()
-    setSearchquery(query)
-  }
+    const query = e.target.value.toLowerCase();
+    setSearchquery(query);
+  };
+
   return (
-    <nav className="bg-[#1f1f1f]/60 backdrop-blur-md text-white shadow-md sticky top-0 z-50 ">
+    <nav className="bg-[#1f1f1f]/60 backdrop-blur-md text-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="text-4xl font-bold text-pink-500 ">AniNewz</div>
+        <div className="text-4xl font-bold text-pink-500">AniNewz</div>
 
         <div className="hidden md:flex space-x-6 text-sm font-medium">
           <Link to="/" className="hover:text-pink-400 text-xl">Upcoming</Link>
@@ -33,7 +32,6 @@ export default function Navbar({ searchquery, setSearchquery }) {
             onChange={handleSearch}
             className="bg-transparent outline-none text-md text-white"
           />
-
         </div>
         <Authentication />
 

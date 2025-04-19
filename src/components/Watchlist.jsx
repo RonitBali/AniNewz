@@ -1,3 +1,4 @@
+// Watchlist.jsx
 import React, { useState, useEffect } from 'react';
 import { getDatabase, ref, set, get } from 'firebase/database';
 import { app } from '../Utils/Firebase.Jsx';
@@ -8,16 +9,15 @@ const Watchlist = ({ userId }) => {
   const [page, setPage] = useState(1);
   const db = getDatabase(app);
 
-  // Fetch all anime (paginated)
   useEffect(() => {
     fetch(`https://api.jikan.moe/v4/anime?page=${page}`)
       .then(res => res.json())
       .then(data => {
         setAnimeList(data.data);
       });
+      
   }, [page]);
 
-  // Fetch user's watchlist
   useEffect(() => {
     if (userId) {
       const watchlistRef = ref(db, 'users/' + userId + '/watchlist');
@@ -29,13 +29,16 @@ const Watchlist = ({ userId }) => {
     }
   }, [userId]);
 
-  // Add to watchlist
   const addToWatchlist = (animeId) => {
     const animeRef = ref(db, `users/${userId}/watchlist/${animeId}`);
     set(animeRef, true).then(() => {
       setWatchlistIds(prev => [...prev, animeId]);
     });
   };
+
+  if (!userId) {
+    return <p className="text-white p-4">Please login to view your watchlist.</p>;
+  }
 
   return (
     <div className="p-4">
