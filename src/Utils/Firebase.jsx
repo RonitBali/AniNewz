@@ -1,24 +1,24 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAIOp8T_Wv8OEh4yx83mgQafzOTHeEQroU",
-  authDomain: "aninewz.firebaseapp.com",
-  databaseURL: "https://aninewz-default-rtdb.firebaseio.com",
-  projectId: "aninewz",
-  storageBucket: "aninewz.firebasestorage.app",
-  messagingSenderId: "937140348636",
-  appId: "1:937140348636:web:c5f71d9c6b90fc5b933619",
-  measurementId: "G-RLK4NHH6LM"
+  apiKey: import.meta.env.VITE_API_KEY,
+  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_DATABASE_URL,
+  projectId: import.meta.env.VITE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_APP_ID,
+  measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
 export const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);
-export const database = getDatabase(app)
+
+let analytics;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
+
+export const database = getDatabase(app);
+export { analytics };
