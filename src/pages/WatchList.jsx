@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getDatabase, ref, onValue, remove } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { app } from '../Utils/Firebase.Jsx';
+import { app } from '../Utils/Firebase';
 import { Trash2, AlertCircle } from 'lucide-react';
 
 const WatchList = () => {
