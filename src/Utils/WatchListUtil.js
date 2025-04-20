@@ -1,5 +1,5 @@
 import { getDatabase, ref, set, get } from 'firebase/database';
-import { app } from '../Utils/Firebase.Jsx';
+import { app } from '../Utils/Firebase';
 
 // Add anime to user's watchlist
 export const addToWatchlist = async (user, anime) => {
