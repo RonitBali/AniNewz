@@ -1,8 +1,9 @@
 import './App.css'
 import Home from './pages/Home'
 import Navbar from './components/Navbar'
-import Watchlist from './components/Watchlist'
+import WatchList from './pages/WatchList'
 import TopAnime from './pages/TopAnime'
+import ScrollToTop from './components/ScrollToTop'
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -17,6 +18,7 @@ function App() {
   return (
     <>
       <Router>
+        <ScrollToTop/>
         <Navbar 
           searchquery={searchquery} 
           setSearchquery={setSearchquery} 
@@ -27,7 +29,7 @@ function App() {
           <Route path='/' element={<Home/>} />
           <Route path='/topanime' element={<TopAnime />} />
           <Route path='/seasonal' element={<TopAnime />} />
-          <Route path='/watchlist' element={<Watchlist userId={user?.uid} />} />
+          <Route path='/watchlist' element={<WatchList userId={user} />} />
         </Routes>
       </Router>
     </>

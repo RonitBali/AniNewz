@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Star, Play, Clock, Calendar, Tv, Tag, Users, BookmarkPlus, Check } from 'lucide-react';
+import { Star, Play, Clock, Calendar, Tv, Tag, Users } from 'lucide-react';
+import AddToWachListButton from './AddToWachListButton';
 
-const AnimeCard = ({ anime }) => {
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-
+const AnimeCard = ({ anime, user }) => {
   if (!anime) return null;
 
   const imgUrl = anime?.images?.jpg?.image_url;
@@ -23,11 +22,6 @@ const AnimeCard = ({ anime }) => {
   
   const airDate = formatDate(anime.aired?.from);
 
-  const toggleWatchlist = () => {
-    setIsInWatchlist(!isInWatchlist);
-    // Here you would typically call a function to update the user's watchlist in your app state or database
-  };
-
   return (
     <div className="group relative w-full overflow-hidden rounded-2xl bg-[#1f1f1f]/60 backdrop-blur-md border border-pink-500/30 shadow-pink-500/10 shadow-2xl transition-transform duration-300 hover:scale-[1.03]">
       {/* Card Content in Flex Row */}
@@ -43,21 +37,9 @@ const AnimeCard = ({ anime }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/50 z-10" />
           
           {/* Watchlist Button - Positioned at top right of image */}
-          <button 
-            onClick={toggleWatchlist}
-            className={`absolute top-2 right-2 z-20 p-2 rounded-full 
-              ${isInWatchlist 
-                ? 'bg-pink-500 text-white' 
-                : 'bg-black/50 text-white hover:bg-pink-500/70'} 
-              transition-all duration-300 transform hover:scale-110`}
-            aria-label={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-          >
-            {isInWatchlist ? (
-              <Check className="h-5 w-5" />
-            ) : (
-              <BookmarkPlus className="h-5 w-5" />
-            )}
-          </button>
+          <div className="absolute top-2 right-2 z-20">
+            <AddToWachListButton user={user} anime={anime} />
+          </div>
         </div>
 
         {/* Content */}
