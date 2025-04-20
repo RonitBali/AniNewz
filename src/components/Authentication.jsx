@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { getDatabase, ref, set } from 'firebase/database';
-import { app } from '../Utils/Firebase.Jsx';
+import { app } from '../Utils/Firebase.jsx';
 
 const Authentication = ({ onUserChange }) => {
   const [user, setUser] = useState(null);
