@@ -23,9 +23,9 @@ export default function Navbar({ searchquery, setSearchquery, user, onUserChange
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-4 lg:space-x-6 text-sm font-medium">
-          <Link to="/" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Upcoming</Link>
+          <Link to="/" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">All Anime</Link>
           <Link to="/topanime" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Top Anime</Link>
-          <Link to="/Animenews" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">AnimeNews</Link>
+          <Link to="/Animenews" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Latest News</Link>
           <Link to="/watchlist" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Watchlist</Link>
         </div>
 
@@ -55,14 +55,7 @@ export default function Navbar({ searchquery, setSearchquery, user, onUserChange
         {/* Mobile Menu & Search */}
         <div className="flex items-center space-x-3 md:hidden">
           <div className="relative">
-            <button 
-              onClick={() => {
-                document.getElementById('mobileSearch').focus();
-              }}
-              className="p-1 rounded-full bg-gray-800 text-gray-400"
-            >
-              <Search size={18} />
-            </button>
+          
           </div>
           
           {/* Mobile Authentication */}
@@ -86,9 +79,9 @@ export default function Navbar({ searchquery, setSearchquery, user, onUserChange
       {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden bg-[#2a2a2a] px-4 py-3 space-y-3 text-center border-t border-gray-700">
-          <Link to="/" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Upcoming</Link>
+          <Link to="/" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">All Anime</Link>
           <Link to="/topanime" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Top Anime</Link>
-          <Link to="/Animenews" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">AnimeNews</Link>
+          <Link to="/Animenews" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Latest News</Link>
           <Link to="/watchlist" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Watchlist</Link>
           
           {/* User info on mobile */}

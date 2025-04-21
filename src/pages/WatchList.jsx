@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { getDatabase, ref, onValue, remove } from 'firebase/database';
+import { getDatabase, ref, onValue, remove, set } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { app } from '../Utils/Firebase';
-import { Trash2, AlertCircle } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle, EyeOff } from 'lucide-react';
 
 const WatchList = () => {
   const [watchlist, setWatchlist] = useState([]);
@@ -13,7 +13,6 @@ const WatchList = () => {
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      console.log("Auth state changed:", currentUser);
       setUser(currentUser);
 
       if (!currentUser) {
@@ -55,6 +54,18 @@ const WatchList = () => {
     }
   };
 
+  const toggleWatchStatus = async (animeId, currentStatus) => {
+    if (!user) return;
+
+    const newStatus = currentStatus === "Watched" ? "Not Watched" : "Watched";
+
+    try {
+      await set(ref(db, `users/${user.uid}/watchlist/${animeId}/status`), newStatus);
+    } catch (error) {
+      console.error("Error updating watch status:", error);
+    }
+  };
+
   if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -80,28 +91,54 @@ const WatchList = () => {
           <p className="text-gray-500 mt-2">Browse anime and add them to your watchlist</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {watchlist.map((anime) => (
-            <div key={anime.id} className="bg-gray-800/80 rounded-lg overflow-hidden shadow-lg hover:shadow-pink-600/20 transition-all">
+            <div
+              key={anime.id}
+              className="bg-[#1f1f1f]/80 border border-pink-500/20 rounded-2xl overflow-hidden shadow-lg hover:shadow-pink-600/20 transition-all duration-300"
+            >
               <div className="relative">
-                <img 
-                  src={anime.image} 
-                  alt={anime.title} 
+                <img
+                  src={anime.image}
+                  alt={anime.title}
                   className="w-full h-64 object-cover"
                 />
-                <button 
+                {/* Remove Button */}
+                <button
                   onClick={() => removeFromWatchlist(anime.id)}
                   className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-600 p-2 rounded-full text-white transition"
                   title="Remove from watchlist"
                 >
                   <Trash2 size={16} />
                 </button>
+
+                {/* Watch Status Toggle */}
+                <button
+                  onClick={() => toggleWatchStatus(anime.id, anime.status || "Not Watched")}
+                  className={`absolute top-2 left-2 p-2 rounded-full text-white transition ${
+                    anime.status === "Watched"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-yellow-600 hover:bg-yellow-700"
+                  }`}
+                  title="Toggle watch status"
+                >
+                  {anime.status === "Watched" ? <CheckCircle size={16} /> : <EyeOff size={16} />}
+                </button>
               </div>
-              <div className="p-4">
-                <h3 className="text-white font-semibold text-lg truncate">{anime.title}</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-pink-400 text-sm">{anime.type}</span>
-                  {anime.score && <span className="bg-pink-500 px-2 py-0.5 rounded text-xs text-white">{anime.score}</span>}
+
+              <div className="p-4 text-white">
+                <h3 className="text-lg font-semibold line-clamp-2">{anime.title}</h3>
+                <div className="text-sm text-gray-400 mt-1 italic">{anime.type}</div>
+
+                <div className="text-sm mt-2 space-y-1">
+                  {anime.episodes && <p>Episodes: {anime.episodes}</p>}
+                  {anime.year && <p>Year: {anime.year}</p>}
+                  {anime.season && <p>Season: {anime.season}</p>}
+                  {anime.score && <p>Score: ⭐ {anime.score}</p>}
+                </div>
+
+                <div className="mt-2 text-xs text-pink-300 font-medium">
+                  Status: {anime.status || "Not Watched"}
                 </div>
               </div>
             </div>

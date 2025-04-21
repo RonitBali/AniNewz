@@ -63,7 +63,7 @@ const WatchButton = ({ anime }) => {
       <button
         ref={buttonRef}
         onClick={navigateWithFallback}
-        className="flex items-center justify-center gap-1 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
+        className="flex items-center justify-center gap-1 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors "
       >
         <ExternalLink className="h-4 w-4" />
         Watch Now

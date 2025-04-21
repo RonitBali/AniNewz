@@ -130,7 +130,7 @@ const TopAnime = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
-                    className="text-gray-300 max-w-3xl"
+                   className="text-xl text-white md:text-2xl font-light max-w-2xl drop-shadow-md mb-12"
                 >
                     Discover the highest rated and most popular anime series of all time, sorted by {sortMethod === 'score' ? 'MyAnimeList score' : sortMethod === 'popularity' ? 'number of members' : 'release date'}.
                 </motion.p>

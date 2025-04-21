@@ -48,10 +48,10 @@ const Home = () => {
           let url;
           
           if (searchQuery) {
-            // Search for anime
+            
             url = `https://api.jikan.moe/v4/anime?q=${searchQuery}&page=${page}&limit=12`;
           } else {
-            // Get anime by filter
+            
             switch (filter) {
               case 'airing':
                 url = `https://api.jikan.moe/v4/top/anime?filter=airing&page=${page}&limit=12`;
@@ -93,13 +93,16 @@ const Home = () => {
           
           if (data.data) {
             // Cache the results
+            const uniqueAnime = Array.from(
+              new Map(data.data.map((anime) => [anime.mal_id, anime])).values()
+            );
             cacheRef.current[cacheKey] = {
-              data: data.data,
+              data: uniqueAnime,
               pages: data.pagination?.last_visible_page || 1,
               timestamp: Date.now()
             };
             
-            setAnimeList(data.data);
+            setAnimeList(uniqueAnime);
             setTotalPages(data.pagination?.last_visible_page || 1);
             setError(null);
           } else {
@@ -207,7 +210,7 @@ const Home = () => {
         >
           <div className="relative flex">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-gray-400 " />
             </div>
             <input
               type="text"
@@ -220,7 +223,7 @@ const Home = () => {
               type="submit"
               onClick={handleSearch}
               disabled={loading || isRetrying}
-              className={`px-6 py-3 text-white font-medium rounded-r-lg transition-colors ${
+              className={`px-6 py-3 text-white font-medium rounded-xl ml-1 transition-colors ${
                 loading || isRetrying 
                   ? 'bg-gray-600 cursor-not-allowed' 
                   : 'bg-pink-600 hover:bg-pink-700'
@@ -283,9 +286,9 @@ const Home = () => {
              filter === 'upcoming' ? 'Upcoming Anime' : 
              filter === 'popular' ? 'Most Popular' : 'All Anime'}
           </h2>
-          <p className="text-pink-300 font-medium">
+          {/* <p className="text-pink-300 font-medium">
             {animeList.length} results found
-          </p>
+          </p> */}
         </div>
 
         {/* Loading state */}
@@ -347,6 +350,7 @@ const Home = () => {
         {totalPages > 1 && (
           <div className="flex justify-center mt-8 gap-2">
             <button
+              type='button'
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1 || loading || isRetrying}
               className={`px-4 py-2 rounded-lg text-white ${
@@ -363,6 +367,7 @@ const Home = () => {
             </div>
             
             <button
+              type='button'
               onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages || loading || isRetrying}
               className={`px-4 py-2 rounded-lg text-white ${
