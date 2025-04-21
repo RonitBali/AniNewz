@@ -19,11 +19,11 @@ export default function Navbar({ searchquery, setSearchquery, user, onUserChange
         <div className="hidden md:flex space-x-6 text-sm font-medium">
           <Link to="/" className="hover:text-pink-400 text-xl">Upcoming</Link>
           <Link to="/topanime" className="hover:text-pink-400 text-xl">Top Anime</Link>
-          <Link to="/seasonal" className="hover:text-pink-400 text-xl">Seasonal</Link>
+          <Link to="/Animenews" className="hover:text-pink-400 text-xl">AnimeNews</Link>
           <Link to="/watchlist" className="hover:text-pink-400 text-xl">Watchlist</Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-md">
+        {/* <div className="hidden md:flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-md">
           <Search size={18} className="text-gray-400" />
           <input
             type="text"
@@ -32,7 +32,7 @@ export default function Navbar({ searchquery, setSearchquery, user, onUserChange
             onChange={handleSearch}
             className="bg-transparent outline-none text-md text-white"
           />
-        </div>
+        </div> */}
         
         {/* User display section */}
         <div className="flex items-center gap-3">
@@ -64,10 +64,10 @@ export default function Navbar({ searchquery, setSearchquery, user, onUserChange
       {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden bg-[#2a2a2a] px-4 pb-4 space-y-2 text-sm">
-          <Link to="/" className="block hover:text-pink-400">Upcoming</Link>
-          <Link to="/topanime" className="block hover:text-pink-400">Top Anime</Link>
-          <Link to="/seasonal" className="block hover:text-pink-400">Seasonal</Link>
-          <Link to="/watchlist" className="block hover:text-pink-400">Watchlist</Link>
+          <Link to="/" className="hover:text-pink-400 text-xl">Upcoming</Link>
+          <Link to="/topanime" className="hover:text-pink-400 text-xl">Top Anime</Link>
+          <Link to="/Animenews" className="hover:text-pink-400 text-xl">AnimeNews</Link>
+          <Link to="/watchlist" className="hover:text-pink-400 text-xl">Watchlist</Link>
           <input
             type="text"
             placeholder="Search anime..."

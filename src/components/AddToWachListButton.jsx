@@ -64,38 +64,39 @@ const AddToWatchListButton = ({ anime }) => {
     
     return (
         <div className="relative">
-            <button
-                onClick={handleToggleWatchlist}
-                disabled={loading}
-                className={`
-                flex items-center gap-1 px-3 py-1 rounded-md transition-all
-                ${inWatchlist 
-                    ? 'bg-pink-600 hover:bg-pink-700 text-white' 
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                }
-                ${loading ? 'opacity-50 cursor-wait' : ''}
-                `}
-            >
-                {inWatchlist ? (
-                    <>
-                        <HeartOff size={16} className="stroke-current" />
-                        <span>Remove</span>
-                    </>
-                ) : (
-                    <>
-                        <Heart size={16} className="stroke-current" />
-                        <span>Add to Watchlist</span>
-                    </>
-                )}
-            </button>
-            
-            {message && (
-                <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-gray-800 text-white text-xs rounded shadow-lg">
-                    {message}
-                </div>
+          <button
+            onClick={handleToggleWatchlist}
+            disabled={loading}
+            className={`
+              flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all
+              ${inWatchlist 
+                ? 'bg-pink-600 hover:bg-pink-700 text-white' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+              }
+              ${loading ? 'opacity-50 ' : ''}
+            `}
+          >
+            {inWatchlist ? (
+              <>
+                <HeartOff size={14} className="stroke-current" />
+                <span>Remove</span>
+              </>
+            ) : (
+              <>
+                <Heart size={14} className="stroke-current" />
+                <span>Add</span>
+              </>
             )}
+          </button>
+      
+          {message && (
+            <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-gray-800 text-white text-xs rounded shadow-lg">
+              {message}
+            </div>
+          )}
         </div>
-    );
+      );
+      
 };
 
 export default AddToWatchListButton;

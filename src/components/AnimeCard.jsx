@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Star, Play, Clock, Calendar, Tv, Tag, Users } from 'lucide-react';
 import AddToWachListButton from './AddToWachListButton';
+import WatchButton from './WatchButton';
 
 const AnimeCard = ({ anime, user }) => {
   if (!anime) return null;
@@ -39,6 +40,11 @@ const AnimeCard = ({ anime, user }) => {
           {/* Watchlist Button - Positioned at top right of image */}
           <div className="absolute top-2 right-2 z-20">
             <AddToWachListButton user={user} anime={anime} />
+          </div>
+          
+          {/* Watch Now Button - Positioned at bottom center of image */}
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center z-20">
+            <WatchButton anime={anime} />
           </div>
         </div>
 

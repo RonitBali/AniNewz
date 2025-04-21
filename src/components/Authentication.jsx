@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { getDatabase, ref, set } from 'firebase/database';
+import { getDatabase, ref, set, update } from 'firebase/database';
 import { app } from '../Utils/Firebase';
 
 const Authentication = ({ onUserChange }) => {
@@ -33,7 +33,7 @@ const Authentication = ({ onUserChange }) => {
       console.log("Google Auth result:", user);
       console.log("Photo URL from Google:", user.photoURL);
       
-      await set(ref(db, 'users/' + user.uid), {
+      await update(ref(db, 'users/' + user.uid), {
         uid: user.uid,
         displayName: user.displayName,
         email: user.email,

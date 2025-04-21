@@ -3,6 +3,7 @@ import Home from './pages/Home'
 import Navbar from './components/Navbar'
 import WatchList from './pages/WatchList'
 import TopAnime from './pages/TopAnime'
+import AnimeNews from './pages/AnimeNews'
 import ScrollToTop from './components/ScrollToTop'
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -30,6 +31,8 @@ function App() {
           <Route path='/topanime' element={<TopAnime />} />
           <Route path='/seasonal' element={<TopAnime />} />
           <Route path='/watchlist' element={<WatchList userId={user} />} />
+          <Route path='/Animenews' element={<AnimeNews />} />
+          
         </Routes>
       </Router>
     </>
