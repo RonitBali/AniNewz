@@ -10,8 +10,8 @@ const WatchButton = ({ anime }) => {
   // Define sites with their URLs in priority order
   const sites = [
     { 
-      name: "HiAnime", 
-      url: `https://hianime.pe/search?keyword=${encodeURIComponent(animeTitle)}`
+      name: "AnimePahe", 
+      url: `https://animepahe.si/anime?q=${encodeURIComponent(animeTitle)}`
     },
     {
       name: "AnimePahe",
