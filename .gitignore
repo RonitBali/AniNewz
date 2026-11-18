@@ -25,3 +25,5 @@ dist-ssr
 
 #MISC
 .env
+.vercel
+.env*

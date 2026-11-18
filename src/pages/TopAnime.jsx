@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AnimeCard from '../components/AnimeCard';
 import { Trophy, Filter, ChevronDown, SlidersHorizontal, Loader } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { fetchTopAnime } from '../api/anilist';
 
 const TopAnime = () => {
     const [topAnime, setTopAnime] = useState([]);
@@ -13,10 +14,9 @@ const TopAnime = () => {
     useEffect(() => {
         const getTop = async () => {
             try {
-                const res = await fetch("https://api.jikan.moe/v4/top/anime");
-                const data = await res.json();
-                setTopAnime(data.data);
-                setFilteredAnime(data.data);
+                const result = await fetchTopAnime(1, 25);
+                setTopAnime(result.data);
+                setFilteredAnime(result.data);
                 setLoading(false);
             } catch (error) {
                 console.log(error);
@@ -132,7 +132,7 @@ const TopAnime = () => {
                     transition={{ delay: 0.3, duration: 0.8 }}
                    className="text-xl text-white md:text-2xl font-light max-w-2xl drop-shadow-md mb-12"
                 >
-                    Discover the highest rated and most popular anime series of all time, sorted by {sortMethod === 'score' ? 'MyAnimeList score' : sortMethod === 'popularity' ? 'number of members' : 'release date'}.
+                    Discover the highest rated and most popular anime series of all time, sorted by {sortMethod === 'score' ? 'score' : sortMethod === 'popularity' ? 'number of members' : 'release date'}.
                 </motion.p>
             </div>
             

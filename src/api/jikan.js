@@ -1,6 +1,2 @@
-export const fetchupcominganimedata = async() => {
-    
-    const res = await fetch('https://api.jikan.moe/v4/seasons/upcoming');
-    const data = await res.json();
-    return data.data
-}
+// Redirects legacy Jikan imports to AniList
+export { fetchUpcoming as fetchupcominganimedata } from './anilist';
