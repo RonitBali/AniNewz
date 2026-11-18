@@ -1,69 +1,47 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { ExternalLink } from 'lucide-react';
 
 const WatchButton = ({ anime }) => {
-  const buttonRef = useRef(null);
-  
-  // Get anime info for search
-  const animeTitle = anime?.title || '';
-  
-  // Define sites with their URLs in priority order
+  // AniList returns title as a plain string (normalized in anilist.js)
+  // Fallback chain: title string → title.english → title.romaji
+  const animeTitle =
+    typeof anime?.title === 'string'
+      ? anime.title
+      : anime?.title?.english || anime?.title?.romaji || '';
+
+  // Build slug for gogoanime-style URLs
+  const slugTitle = animeTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+  // Sites in priority order — animepahe.su is the current live domain (.ru redirects here)
   const sites = [
-    { 
-      name: "AnimePahe", 
-      url: `https://animepahe.si/anime?q=${encodeURIComponent(animeTitle)}`
+    {
+      name: 'AnimePahe',
+      url: `https://animepahe.su/anime?q=${encodeURIComponent(animeTitle)}`,
     },
     {
-      name: "AnimePahe",
-      url: `https://animepahe.ru/anime?q=${encodeURIComponent(animeTitle)}`
+      name: 'AnimePahe (mirror)',
+      url: `https://animepahe.ru/anime?q=${encodeURIComponent(animeTitle)}`,
     },
     {
-      name: "GogoAnime",
-      url: `https://gogoanime.gg/search/${encodeURIComponent(animeTitle.toLowerCase().replace(/\s+/g, '-'))}`
-    }
+      name: 'GogoAnime',
+      url: `https://gogoanime3.co/search.html?keyword=${encodeURIComponent(animeTitle)}`,
+    },
   ];
 
-  // Site navigation with fallback logic
-  const navigateWithFallback = (e) => {
+  const handleWatch = (e) => {
     e.stopPropagation();
-    
-    // Store the sites we've attempted to visit
-    const attemptedSites = new Set();
-    let currentSiteIndex = 0;
-    
-    // Function to attempt opening a site
-    const attemptSite = () => {
-      // If we've tried all sites, stop
-      if (currentSiteIndex >= sites.length) {
-        return;
-      }
-      
-      const site = sites[currentSiteIndex];
-      attemptedSites.add(site.name);
-      
-      // Try opening the current site
+    // Always open the first working site in a new tab
+    for (const site of sites) {
       const newWindow = window.open(site.url, '_blank', 'noopener,noreferrer');
-      
-      // Increment index for potential next attempt
-      currentSiteIndex++;
-      
-      // If window was blocked or failed to open, try next site
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        // Try the next site immediately
-        attemptSite();
-      }
-    };
-    
-    // Start the process with the first site
-    attemptSite();
+      if (newWindow && !newWindow.closed) return;
+    }
   };
 
   return (
     <div className="relative z-30">
       <button
-        ref={buttonRef}
-        onClick={navigateWithFallback}
-        className="flex items-center justify-center gap-1 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors "
+        onClick={handleWatch}
+        className="flex items-center justify-center gap-1 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
       >
         <ExternalLink className="h-4 w-4" />
         Watch Now
