@@ -16,6 +16,7 @@ export const addToWatchlist = async (user, anime) => {
       image: anime.images.jpg.large_image_url || anime.images.jpg.image_url,
       type: anime.type || "Unknown",
       score: anime.score || null,
+      status: "Not Watched",
       addedAt: new Date().toISOString()
     };
 

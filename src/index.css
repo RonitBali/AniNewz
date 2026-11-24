@@ -2,33 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
-body{
-    background-image: url(../Images/bg-3.jpg);
-    background-size: cover;
-    background-position: center;    
-    background-attachment: fixed;    
-    background-repeat: no-repeat;   
-    height: 100vh;                  
-    margin: 0; 
+body {
+    background-color: #0d0d16;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    color: #f3f4f6;
+    -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar{
+/* Original wallpaper on its own fixed layer (not background-attachment: fixed,
+   which repaints on every scroll frame). */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url(/Images/bg-3.jpg) center / cover no-repeat;
+    transform: translateZ(0);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Keep headings and tabs readable over the bright wallpaper */
+h1, h2, [role='tab'], [aria-pressed] {
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+@layer components {
+    /* Frosted surface used for navbar, cards, panels */
+    .glass {
+        @apply bg-[#12121c]/90 border border-white/10;
+    }
+    .glass-strong {
+        @apply bg-[#0d0d16] border border-white/10;
+    }
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-md bg-pink-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-gray-100 transition hover:bg-white/10 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+    .chip {
+        @apply inline-flex items-center rounded border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-medium text-gray-200;
+    }
+    .skeleton {
+        @apply relative overflow-hidden rounded-md bg-white/5;
+    }
+    .skeleton::after {
+        content: '';
+        @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent;
+    }
+}
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+    outline: 2px solid #ec4899;
+    outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
     height: 50px;
-    width: 5px;
-   
+    width: 6px;
 }
 
-::-webkit-scrollbar-track{
-    background: #1f1f1f;
+::-webkit-scrollbar-track {
+    background: #14141f;
 }
 
-::-webkit-scrollbar-thumb{
-    background: #ec4899; 
+::-webkit-scrollbar-thumb {
+    background: #ec4899;
     border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: #db2777; 
-  }
-  
+    background: #db2777;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

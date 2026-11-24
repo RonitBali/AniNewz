@@ -1,102 +1,96 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, HeartOff } from 'lucide-react';
+import { Bookmark, BookmarkCheck } from 'lucide-react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { addToWatchlist, removeFromWatchlist, isInWatchlist } from '../Utils/WatchListUtil';
-import { getAuth } from 'firebase/auth';
 import { app } from '../Utils/Firebase';
 
-const AddToWatchListButton = ({ anime }) => {
-    const [inWatchlist, setInWatchlist] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
-    const [user, setUser] = useState(null);
-    const auth = getAuth(app);
-  
-    useEffect(() => {
-        // Get current auth state
-        const currentUser = auth.currentUser;
-        setUser(currentUser);
-        
-        const checkWatchlist = async () => {
-            if (currentUser && anime) {
-                const result = await isInWatchlist(currentUser, anime.mal_id);
-                setInWatchlist(result);
-            } else {
-                setInWatchlist(false);
-            }
-        };
-        
-        checkWatchlist();
-    }, [anime, auth.currentUser]);
-    
-    const handleToggleWatchlist = async () => {
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-            setMessage('Please log in to add to watchlist');
-            setTimeout(() => setMessage(''), 2000);
-            return;
-        }
-    
-        setLoading(true);
-        try {
-            if (inWatchlist) {
-                const result = await removeFromWatchlist(currentUser, anime.mal_id);
-                if (result.success) {
-                    setInWatchlist(false);
-                }
-                setMessage(result.message);
-            } else {
-                const result = await addToWatchlist(currentUser, anime);
-                if (result.success) {
-                    setInWatchlist(true);
-                }
-                setMessage(result.message);
-            }
-            
-            setTimeout(() => setMessage(''), 3000);
-        } catch (error) {
-            console.error("Error updating watchlist:", error);
-            setMessage('An error occurred');
-            setTimeout(() => setMessage(''), 3000);
-        }
-    
-        setLoading(false);
+// variant: "icon" (round button on cards) | "full" (labelled button in modal)
+const AddToWatchListButton = ({ anime, variant = 'icon' }) => {
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [user, setUser] = useState(null);
+
+  // Track auth state so the saved/unsaved state is right even if auth loads late
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(getAuth(app), setUser);
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (user && anime) {
+      isInWatchlist(user, anime.mal_id).then((result) => {
+        if (!cancelled) setInWatchlist(result);
+      });
+    } else {
+      setInWatchlist(false);
+    }
+    return () => {
+      cancelled = true;
     };
-    
-    return (
-        <div className="relative">
-          <button
-            onClick={handleToggleWatchlist}
-            disabled={loading}
-            className={`
-              flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all
-              ${inWatchlist 
-                ? 'bg-pink-600 hover:bg-pink-700 text-white' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-              }
-              ${loading ? 'opacity-50 ' : ''}
-            `}
-          >
-            {inWatchlist ? (
-              <>
-                <HeartOff size={14} className="stroke-current" />
-                <span>Remove</span>
-              </>
-            ) : (
-              <>
-                <Heart size={14} className="stroke-current" />
-                <span>Add</span>
-              </>
-            )}
-          </button>
-      
-          {message && (
-            <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-gray-800 text-white text-xs rounded shadow-lg">
-              {message}
-            </div>
-          )}
+  }, [anime, user]);
+
+  const flash = (text, ms = 2500) => {
+    setMessage(text);
+    setTimeout(() => setMessage(''), ms);
+  };
+
+  const handleToggle = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      flash('Log in to save anime');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = inWatchlist
+        ? await removeFromWatchlist(user, anime.mal_id)
+        : await addToWatchlist(user, anime);
+      if (result.success) setInWatchlist(!inWatchlist);
+      flash(result.message);
+    } catch (error) {
+      console.error('Error updating watchlist:', error);
+      flash('Something went wrong');
+    }
+    setLoading(false);
+  };
+
+  const Icon = inWatchlist ? BookmarkCheck : Bookmark;
+  const label = inWatchlist ? 'Remove from watchlist' : 'Add to watchlist';
+
+  return (
+    <div className="relative">
+      {variant === 'full' ? (
+        <button onClick={handleToggle} disabled={loading} className={inWatchlist ? 'btn-primary' : 'btn-ghost'}>
+          <Icon className="h-4 w-4" />
+          {inWatchlist ? 'In watchlist' : 'Add to watchlist'}
+        </button>
+      ) : (
+        <button
+          onClick={handleToggle}
+          disabled={loading}
+          aria-label={label}
+          title={label}
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90 disabled:opacity-50 ${
+            inWatchlist ? 'bg-pink-500 text-white' : 'bg-black/70 text-white hover:bg-pink-500'
+          }`}
+        >
+          <Icon className="h-4 w-4" />
+        </button>
+      )}
+
+      {message && (
+        <div
+          role="status"
+          className="absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white shadow-xl ring-1 ring-white/10"
+        >
+          {message}
         </div>
-      );
-      
+      )}
+    </div>
+  );
 };
 
 export default AddToWatchListButton;

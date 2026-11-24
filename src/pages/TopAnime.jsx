@@ -1,164 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import AnimeCard from '../components/AnimeCard';
-import { Trophy, Filter, ChevronDown, SlidersHorizontal, Loader } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+import AnimeGrid from '../components/AnimeGrid';
+import { GridSkeleton } from '../components/Skeleton';
 import { fetchTopAnime } from '../api/anilist';
 
+const SORTS = [
+  { key: 'score', label: 'Score' },
+  { key: 'popularity', label: 'Popularity' },
+  { key: 'newest', label: 'Newest' },
+];
+
 const TopAnime = () => {
-    const [topAnime, setTopAnime] = useState([]);
-    const [filteredAnime, setFilteredAnime] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filterOpen, setFilterOpen] = useState(false);
-    const [sortMethod, setSortMethod] = useState('score');
+  const [topAnime, setTopAnime] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [sortMethod, setSortMethod] = useState('score');
 
-    useEffect(() => {
-        const getTop = async () => {
-            try {
-                const result = await fetchTopAnime(1, 25);
-                setTopAnime(result.data);
-                setFilteredAnime(result.data);
-                setLoading(false);
-            } catch (error) {
-                console.log(error);
-                setLoading(false);
-            }
-        };
-        getTop();
-    }, []);
-
-    useEffect(() => {
-        // Apply sorting
-        const sortedAnime = [...topAnime];
-        
-        if (sortMethod === 'score') {
-            sortedAnime.sort((a, b) => (b.score || 0) - (a.score || 0));
-        } else if (sortMethod === 'popularity') {
-            sortedAnime.sort((a, b) => (b.members || 0) - (a.members || 0));
-        } else if (sortMethod === 'newest') {
-            sortedAnime.sort((a, b) => {
-                const dateA = a.aired?.from ? new Date(a.aired.from) : new Date(0);
-                const dateB = b.aired?.from ? new Date(b.aired.from) : new Date(0);
-                return dateB - dateA;
-            });
-        }
-        
-        setFilteredAnime(sortedAnime);
-    }, [sortMethod, topAnime]);
-
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
+  useEffect(() => {
+    let cancelled = false;
+    fetchTopAnime(1, 24)
+      .then((result) => !cancelled && setTopAnime(result.data))
+      .catch((err) => {
+        console.error(err);
+        if (!cancelled) setError("Couldn't load the top anime list. Please try again later.");
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
     };
-    
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-    };
+  }, []);
 
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen text-white">
-                <Loader className="h-12 w-12 animate-spin text-pink-500 mb-4" />
-                <p className="text-xl font-medium">Loading Top Anime...</p>
-            </div>
-        );
-    }
+  const sorted = useMemo(() => {
+    const list = [...topAnime];
+    if (sortMethod === 'score') list.sort((a, b) => (b.score || 0) - (a.score || 0));
+    else if (sortMethod === 'popularity') list.sort((a, b) => (b.members || 0) - (a.members || 0));
+    else
+      list.sort((a, b) => {
+        const da = a.aired?.from ? new Date(a.aired.from) : new Date(0);
+        const db = b.aired?.from ? new Date(b.aired.from) : new Date(0);
+        return db - da;
+      });
+    return list;
+  }, [topAnime, sortMethod]);
 
-    return (
-        <section className="min-h-screen  py-16 px-4">
-            {/* Header Section */}
-            <div className="container mx-auto mb-12">
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="flex flex-col md:flex-row justify-between items-center mb-8"
-                >
-                    <div className="flex items-center mb-6 md:mb-0">
-                        <Trophy className="h-10 w-10 text-yellow-400 mr-4" />
-                        <h1 className="text-4xl md:text-5xl font-bold text-white">
-                            Top Anime
-                        </h1>
-                    </div>
-                    
-                    {/* Sort Options */}
-                    <div className="relative">
-                        <button 
-                            className="bg-pink-500/80 hover:bg-pink-500 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                            onClick={() => setFilterOpen(!filterOpen)}
-                        >
-                            <SlidersHorizontal className="h-5 w-5" />
-                            <span>Sort By: {sortMethod.charAt(0).toUpperCase() + sortMethod.slice(1)}</span>
-                            <ChevronDown className="h-4 w-4 transition-transform duration-300" style={{ transform: filterOpen ? 'rotate(180deg)' : 'rotate(0)' }} />
-                        </button>
-                        
-                        {/* Dropdown */}
-                        {filterOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
-                                <div className="py-1">
-                                    <button 
-                                        className={`block px-4 py-2 text-sm w-full text-left ${sortMethod === 'score' ? 'bg-pink-500/20 text-pink-300' : 'text-gray-200 hover:bg-gray-700'}`}
-                                        onClick={() => { setSortMethod('score'); setFilterOpen(false); }}
-                                    >
-                                        Score
-                                    </button>
-                                    <button 
-                                        className={`block px-4 py-2 text-sm w-full text-left ${sortMethod === 'popularity' ? 'bg-pink-500/20 text-pink-300' : 'text-gray-200 hover:bg-gray-700'}`}
-                                        onClick={() => { setSortMethod('popularity'); setFilterOpen(false); }}
-                                    >
-                                        Popularity
-                                    </button>
-                                    <button 
-                                        className={`block px-4 py-2 text-sm w-full text-left ${sortMethod === 'newest' ? 'bg-pink-500/20 text-pink-300' : 'text-gray-200 hover:bg-gray-700'}`}
-                                        onClick={() => { setSortMethod('newest'); setFilterOpen(false); }}
-                                    >
-                                        Newest
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </motion.div>
-                
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
-                   className="text-xl text-white md:text-2xl font-light max-w-2xl drop-shadow-md mb-12"
-                >
-                    Discover the highest rated and most popular anime series of all time, sorted by {sortMethod === 'score' ? 'score' : sortMethod === 'popularity' ? 'number of members' : 'release date'}.
-                </motion.p>
-            </div>
-            
-            {/* Anime Grid */}
-            <div className="container mx-auto">
-                <motion.div 
-                    className="grid gap-6 md:grid-cols-1 lg:grid-cols-2"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="show"
-                >
-                    {filteredAnime.map((anime, index) => (
-                        <motion.div key={anime.mal_id} variants={itemVariants}>
-                            <div className="relative">
-                                {/* Rank Badge */}
-                                <div className="absolute -left-2 -top-2 z-30 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                                    #{index + 1}
-                                </div>
-                                <AnimeCard anime={anime} />
-                            </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
-            </div>
-        </section>
-    );
+  return (
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:py-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Top Anime</h1>
+          <p className="mt-2 max-w-xl text-sm text-gray-300 sm:text-base">
+            The highest rated anime of all time. Re-sort the list by score, popularity or release date.
+          </p>
+        </div>
+
+        <div role="group" aria-label="Sort by" className="flex w-full gap-6 border-b border-white/10 sm:w-auto">
+          {SORTS.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setSortMethod(key)}
+              aria-pressed={sortMethod === key}
+              className={`-mb-px border-b-2 pb-2 text-sm font-medium transition ${
+                sortMethod === key ? 'border-pink-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {loading && <GridSkeleton count={12} />}
+
+      {error && !loading && (
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg p-8 text-center">
+          <AlertCircle className="h-8 w-8 text-pink-400" />
+          <p className="text-gray-200">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && <AnimeGrid items={sorted} showRank />}
+    </div>
+  );
 };
 
 export default TopAnime;

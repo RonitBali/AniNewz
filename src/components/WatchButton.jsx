@@ -1,52 +1,32 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { Play } from 'lucide-react';
 
-const WatchButton = ({ anime }) => {
+// variant: "compact" (card overlay) | "large" (modal / spotlight)
+const WatchButton = ({ anime, variant = 'compact' }) => {
   // AniList returns title as a plain string (normalized in anilist.js)
-  // Fallback chain: title string → title.english → title.romaji
   const animeTitle =
     typeof anime?.title === 'string'
       ? anime.title
       : anime?.title?.english || anime?.title?.romaji || '';
 
-  // Build slug for gogoanime-style URLs
-  const slugTitle = animeTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-  // Sites in priority order — animepahe.su is the current live domain (.ru redirects here)
-  const sites = [
-    {
-      name: 'AnimePahe',
-      url: `https://animepahe.su/anime?q=${encodeURIComponent(animeTitle)}`,
-    },
-    {
-      name: 'AnimePahe (mirror)',
-      url: `https://animepahe.ru/anime?q=${encodeURIComponent(animeTitle)}`,
-    },
-    {
-      name: 'GogoAnime',
-      url: `https://gogoanime3.co/search.html?keyword=${encodeURIComponent(animeTitle)}`,
-    },
-  ];
+  // reanime.cz routes by slug, not AniList ID. /api/reanime looks the slug up
+  // (matching anilist_id, normalized as mal_id in anilist.js) and redirects to
+  // the watch page, or to the site's search if there is no exact match.
+  const watchUrl = `/api/reanime?id=${encodeURIComponent(anime?.mal_id ?? '')}&title=${encodeURIComponent(animeTitle)}`;
 
   const handleWatch = (e) => {
     e.stopPropagation();
-    // Always open the first working site in a new tab
-    for (const site of sites) {
-      const newWindow = window.open(site.url, '_blank', 'noopener,noreferrer');
-      if (newWindow && !newWindow.closed) return;
-    }
+    // Open once. With 'noopener', window.open always returns null, so never retry on that.
+    window.open(watchUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const size = variant === 'large' ? 'px-6 py-3 text-base' : 'px-3 py-1.5 text-xs';
+
   return (
-    <div className="relative z-30">
-      <button
-        onClick={handleWatch}
-        className="flex items-center justify-center gap-1 bg-pink-600 hover:bg-pink-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
-      >
-        <ExternalLink className="h-4 w-4" />
-        Watch Now
-      </button>
-    </div>
+    <button onClick={handleWatch} className={`btn-primary ${size}`}>
+      <Play className={variant === 'large' ? 'h-5 w-5' : 'h-3.5 w-3.5'} fill="currentColor" />
+      Watch Now
+    </button>
   );
 };
 

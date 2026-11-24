@@ -6,38 +6,26 @@ import TopAnime from './pages/TopAnime'
 import AnimeNews from './pages/AnimeNews'
 import ScrollToTop from './components/ScrollToTop'
 import Footer from './components/Footer'
-import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
-  const [searchquery, setSearchquery] = useState('');
-  const [user, setUser] = useState(null);
-
-  const handleUserChange = (newUser) => {
-    setUser(newUser);
-  };
-
   return (
-    <>
-      <Router>
-        
+    <Router>
+      <div className="flex min-h-screen flex-col">
         <ScrollToTop/>
-        <Navbar 
-          searchquery={searchquery} 
-          setSearchquery={setSearchquery} 
-          user={user}
-          onUserChange={handleUserChange}
-        />
-        <Routes>
-          <Route path='/' element={<Home/>} />
-          <Route path='/topanime' element={<TopAnime />} />
-          <Route path='/seasonal' element={<TopAnime />} />
-          <Route path='/watchlist' element={<WatchList userId={user} />} />
-          <Route path='/Animenews' element={<AnimeNews />} /> 
-        </Routes>
-         <Footer/>
-      </Router>
-    </>
+        <Navbar />
+        <main className="flex-1">
+          <Routes>
+            <Route path='/' element={<Home/>} />
+            <Route path='/topanime' element={<TopAnime />} />
+            <Route path='/seasonal' element={<TopAnime />} />
+            <Route path='/watchlist' element={<WatchList />} />
+            <Route path='/Animenews' element={<AnimeNews />} />
+          </Routes>
+        </main>
+        <Footer/>
+      </div>
+    </Router>
   );
 }
 export default App;

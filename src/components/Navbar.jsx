@@ -1,106 +1,108 @@
-import { useState } from "react";
-import { Search, Menu, X } from "lucide-react";
-import { Link } from 'react-router-dom';
-import Authentication from "./Authentication"; // Import the Authentication component
+import { useState } from 'react';
+import { Search, Menu, X } from 'lucide-react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import Authentication from './Authentication';
 
-export default function Navbar({ searchquery, setSearchquery, user, onUserChange }) {
+const LINKS = [
+  { to: '/', label: 'Discover', end: true },
+  { to: '/topanime', label: 'Top Anime' },
+  { to: '/Animenews', label: 'News' },
+  { to: '/watchlist', label: 'Watchlist' },
+];
+
+const linkClass = ({ isActive }) =>
+  `border-b-2 px-1 py-1.5 text-sm font-medium transition ${
+    isActive ? 'border-pink-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
+  }`;
+
+export default function Navbar({ onUserChange }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const navigate = useNavigate();
 
-  const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    setSearchquery(query);
-  };
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+  const submitSearch = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    navigate(`/?q=${encodeURIComponent(q)}`);
+    setQuery('');
+    setIsOpen(false);
   };
 
   return (
-    <nav className="bg-[#1f1f1f]/60 backdrop-blur-md text-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="glass-strong sticky top-0 z-50 border-x-0 border-t-0">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         {/* Logo */}
-        <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-pink-500">AniNewz</div>
+        <Link to="/" className="shrink-0 text-2xl font-extrabold tracking-tight text-white">
+          Ani<span className="text-pink-500">Newz</span>
+        </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex space-x-4 lg:space-x-6 text-sm font-medium">
-          <Link to="/" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">All Anime</Link>
-          <Link to="/topanime" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Top Anime</Link>
-          <Link to="/Animenews" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Latest News</Link>
-          <Link to="/watchlist" className="hover:text-pink-400 text-lg lg:text-xl transition-colors">Watchlist</Link>
-        </div>
+        {/* Desktop nav */}
+        <nav className="ml-6 hidden items-center gap-6 md:flex" aria-label="Main">
+          {LINKS.map((l) => (
+            <NavLink key={l.to} to={l.to} end={l.end} className={linkClass}>
+              {l.label}
+            </NavLink>
+          ))}
+        </nav>
 
-        
-        
-        {/* User display section */}
-        <div className="hidden md:flex items-center gap-3">
-          {user && (
-            <div className="items-center gap-2 hidden lg:flex">
-              {user.photoURL && (
-                <img 
-                  src={user.photoURL} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full border-2 border-pink-400 object-cover"
-                />
-              )}
-              <span className="text-sm text-gray-200">
-                Logged in as <span className="font-medium text-pink-300">{user.displayName}</span>
-              </span>
-            </div>
-          )}
-          
-          {/* Using the Authentication component */}
+        {/* Desktop search */}
+        <form onSubmit={submitSearch} role="search" className="ml-auto hidden max-w-xs flex-1 md:block">
+          <label htmlFor="nav-search" className="sr-only">
+            Search anime
+          </label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              id="nav-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search anime..."
+              className="w-full rounded-md border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-white placeholder-gray-400 outline-none transition focus:border-pink-500/60 focus:bg-white/10"
+            />
+          </div>
+        </form>
+
+        <div className="hidden md:block">
           <Authentication onUserChange={onUserChange} />
         </div>
 
-        {/* Mobile Menu & Search */}
-        <div className="flex items-center space-x-3 md:hidden">
-          <div className="relative">
-          
-          </div>
-          
-          {/* Mobile Authentication */}
-          <div className="flex items-center">
-            <Authentication onUserChange={onUserChange} />
-          </div>
-          
-          {/* Mobile menu toggle */}
-          <button 
-            onClick={toggleMenu} 
-            className="p-1 rounded-full bg-gray-800 text-white"
+        {/* Mobile controls */}
+        <div className="ml-auto flex items-center gap-2 md:hidden">
+          <Authentication onUserChange={onUserChange} />
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-md bg-white/10 text-white"
             aria-label="Toggle menu"
+            aria-expanded={isOpen}
           >
             {isOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      
-
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden bg-[#2a2a2a] px-4 py-3 space-y-3 text-center border-t border-gray-700">
-          <Link to="/" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">All Anime</Link>
-          <Link to="/topanime" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Top Anime</Link>
-          <Link to="/Animenews" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Latest News</Link>
-          <Link to="/watchlist" onClick={toggleMenu} className="block py-2 hover:text-pink-400 text-lg transition-colors">Watchlist</Link>
-          
-          {/* User info on mobile */}
-          {user && (
-            <div className="flex items-center justify-center gap-2 py-2 border-t border-gray-700 mt-3 pt-3">
-              {user.photoURL && (
-                <img 
-                  src={user.photoURL} 
-                  alt="Profile" 
-                  className="w-6 h-6 rounded-full border-2 border-pink-400 object-cover"
-                />
-              )}
-              <span className="text-sm text-gray-200">
-                Logged in as <span className="font-medium text-pink-300">{user.displayName || "User"}</span>
-              </span>
-            </div>
-          )}
+        <div className="space-y-3 border-t border-white/10 px-4 py-4 md:hidden">
+          <form onSubmit={submitSearch} role="search" className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search anime..."
+              aria-label="Search anime"
+              className="w-full rounded-md border border-white/10 bg-white/5 py-2.5 pl-9 pr-3 text-sm text-white placeholder-gray-400 outline-none focus:border-pink-500/60"
+            />
+          </form>
+          <nav className="flex flex-col gap-1" aria-label="Mobile">
+            {LINKS.map((l) => (
+              <NavLink key={l.to} to={l.to} end={l.end} onClick={() => setIsOpen(false)} className={linkClass}>
+                {l.label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
       )}
-    </nav>
+    </header>
   );
 }

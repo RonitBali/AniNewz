@@ -1,140 +1,84 @@
 import React from 'react';
-import { Star, Play, Clock, Calendar, Tv, Tag, Users } from 'lucide-react';
-import AddToWachListButton from './AddToWachListButton';
+import { Star, Tv } from 'lucide-react';
+import AddToWatchListButton from './AddToWachListButton';
 import WatchButton from './WatchButton';
+import { statusInfo } from '../Utils/animeFormat';
 
-const AnimeCard = ({ anime, user }) => {
+// Poster-style card. Clicking the poster/title opens the details modal (onOpen).
+// rank: optional number shown as a badge (Top Anime page).
+const AnimeCard = ({ anime, onOpen, rank }) => {
   if (!anime) return null;
 
-  const imgUrl = anime?.images?.jpg?.image_url;
-  
-  // Format seasons and years
-  const seasonInfo = anime.season && anime.year ? `${anime.season.charAt(0).toUpperCase() + anime.season.slice(1)} ${anime.year}` : "TBA";
-  
-  // Limit genres to first 2 for display
-  const genres = anime.genres?.slice(0, 2).map(genre => genre.name).join(", ") || "N/A";
-  
-  // Format date if available
-  const formatDate = (dateString) => {
-    if (!dateString) return "TBA";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' });
-  };
-  
-  const airDate = formatDate(anime.aired?.from);
+  // Grid tiles are small, so use the lighter cover (the modal loads the large one)
+  const imgUrl = anime.images?.jpg?.image_url || anime.images?.jpg?.large_image_url;
+  const status = statusInfo(anime.status);
+  const genres = anime.genres?.slice(0, 2).map((g) => g.name).join(' · ');
 
   return (
-    <div className="group relative w-full overflow-hidden rounded-2xl bg-[#1f1f1f]/60 backdrop-blur-md border border-pink-500/30 shadow-pink-500/10 shadow-2xl transition-transform duration-300 hover:scale-[1.03]">
-      {/* Card Content in Flex Row */}
-      <div className="flex flex-row h-64">
-        {/* Anime Image */}
-        <div className="relative h-full w-1/3 overflow-hidden">
+    <article className="group relative">
+      <button
+        type="button"
+        onClick={() => onOpen?.(anime)}
+        className="block w-full rounded-lg text-left"
+        aria-label={`View details for ${anime.title}`}
+      >
+        <div className="relative aspect-[2/3] overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-lg transition duration-300 group-hover:-translate-y-1 group-hover:border-pink-500/50">
           <img
             src={imgUrl}
-            alt={anime.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/50 z-10" />
-          
-          {/* Watchlist Button - Positioned at top right of image */}
-          <div className="absolute top-2 right-2 z-20">
-            <AddToWachListButton user={user} anime={anime} />
-          </div>
-          
-          {/* Watch Now Button - Positioned at bottom center of image */}
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center z-20">
-            <WatchButton anime={anime} />
-          </div>
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
 
-        {/* Content */}
-        <div className="z-20 p-4 text-white flex flex-col justify-between w-2/3 relative">
-          {/* Top section with title and status */}
-          <div className="space-y-2">
-            {/* Status Badge */}
-            <span
-              className={`inline-flex items-center text-xs font-semibold rounded-full px-3 py-1 w-fit
-                ${
-                  anime.status === 'Currently Airing'
-                    ? 'bg-pink-500/20 text-pink-300'
-                    : anime.status === 'Finished Airing'
-                    ? 'bg-purple-500/20 text-purple-300'
-                    : anime.status === 'Not yet aired'
-                    ? 'bg-blue-500/20 text-blue-300'
-                    : 'bg-gray-500/20 text-gray-300'
-                }`}
-            >
-              <Clock className="h-3 w-3 mr-1" />
-              {anime.status}
+          {/* Status */}
+          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white">
+            <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+            {status.label}
+          </span>
+
+          {/* Score */}
+          {anime.score && (
+            <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-yellow-300">
+              <Star className="h-3 w-3" fill="currentColor" />
+              {anime.score}
             </span>
-
-            {/* Title */}
-            <h2 className="text-xl font-bold text-pink-400 drop-shadow-lg line-clamp-2">
-              {anime.title || 'No title found'}
-            </h2>
-            
-            {/* Japanese Title if available */}
-            {anime.title_japanese && (
-              <p className="text-sm text-gray-300 italic line-clamp-1">
-                {anime.title_japanese}
-              </p>
-            )}
-          </div>
-
-          {/* Middle section with details */}
-          <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm mt-2">
-            {/* Air Date */}
-            <div className="flex items-center text-cyan-200">
-              <Calendar className="h-4 w-4 mr-2 text-cyan-400" />
-              <span className="truncate">{airDate}</span>
-            </div>
-            
-            {/* Season */}
-            <div className="flex items-center text-purple-200">
-              <Tv className="h-4 w-4 mr-2 text-purple-400" />
-              <span className="truncate">{seasonInfo}</span>
-            </div>
-            
-            {/* Genres */}
-            <div className="flex items-center text-green-200">
-              <Tag className="h-4 w-4 mr-2 text-green-400" />
-              <span className="truncate">{genres}</span>
-            </div>
-            
-            {/* Studio */}
-            <div className="flex items-center text-yellow-200">
-              <Users className="h-4 w-4 mr-2 text-yellow-400" />
-              <span className="truncate">{anime.studios?.[0]?.name || "TBA"}</span>
-            </div>
-          </div>
-
-          {/* Bottom section with stats */}
-          <div className="flex items-center gap-4 text-sm text-pink-200 mt-2">
-            {anime.score && (
-              <div className="flex items-center">
-                <Star className="h-4 w-4 mr-1 text-yellow-400" />
-                {anime.score}
-              </div>
-            )}
-            {anime.episodes && (
-              <div className="flex items-center">
-                <Play className="h-4 w-4 mr-1 text-cyan-400" />
-                {anime.episodes} eps
-              </div>
-            )}
-            {anime.members && (
-              <div className="text-xs text-gray-400">
-                {anime.members.toLocaleString()} members
-              </div>
-            )}
-          </div>
-          
-          {/* Semi-transparent gradient overlay at the bottom for text legibility */}
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+          )}
         </div>
+
+        <div className="mt-3 px-1">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-100 transition group-hover:text-pink-400">
+            {anime.title || 'No title found'}
+          </h3>
+          <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-gray-400">
+            {anime.episodes ? (
+              <>
+                <Tv className="h-3 w-3 shrink-0" />
+                {anime.episodes} eps
+              </>
+            ) : null}
+            {anime.episodes && genres ? <span aria-hidden>·</span> : null}
+            <span className="truncate">{genres}</span>
+          </p>
+        </div>
+      </button>
+
+      {/* Rank badge */}
+      {rank && (
+        <div className="pointer-events-none absolute -left-2 -top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 text-sm font-extrabold text-white shadow-lg ring-2 ring-white/80">
+          {rank}
+        </div>
+      )}
+
+      {/* Quick actions (always visible on touch, fade in on hover for desktop) */}
+      <div className="absolute right-2 top-2 z-10 opacity-100 transition md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
+        <AddToWatchListButton anime={anime} />
       </div>
-    </div>
+      <div className="pointer-events-none absolute inset-x-0 top-[calc(50%-1rem)] z-10 hidden justify-center opacity-0 transition md:flex md:group-hover:opacity-100 md:focus-within:opacity-100 [&>*]:pointer-events-auto">
+        <WatchButton anime={anime} />
+      </div>
+    </article>
   );
 };
 

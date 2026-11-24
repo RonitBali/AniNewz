@@ -1,343 +1,201 @@
 import React, { useState, useEffect, useRef } from 'react';
-import AnimeCard from '../components/AnimeCard';
-import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Search, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import AnimeGrid from '../components/AnimeGrid';
+import Spotlight from '../components/Spotlight';
+import { GridSkeleton } from '../components/Skeleton';
 import { fetchAiring, fetchUpcoming, fetchPopular, searchAnime } from '../api/anilist';
 
+const TABS = [
+  { key: 'airing', label: 'Airing now', fetcher: fetchAiring },
+  { key: 'upcoming', label: 'Upcoming', fetcher: fetchUpcoming },
+  { key: 'popular', label: 'Most popular', fetcher: fetchPopular },
+];
+
+const PER_PAGE = 12;
+const CACHE_TTL = 5 * 60 * 1000;
+
 const Home = () => {
+  // The search term lives in the URL (?q=) so the navbar search and back button both work.
+  const [params, setParams] = useSearchParams();
+  const urlQuery = params.get('q') || '';
+
+  const [input, setInput] = useState(urlQuery);
+  const [filter, setFilter] = useState('airing');
+  const [page, setPage] = useState(1);
   const [animeList, setAnimeList] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('airing'); // Default filter: airing, upcoming, popular
-  
-  // Cache for storing previously fetched results
+  const [retry, setRetry] = useState(0);
   const cacheRef = useRef({});
-  
-  // Debounce timer reference
-  const debounceTimerRef = useRef(null);
 
-  // Fetch anime data from AniList API
+  // Keep the input in sync when the URL changes (e.g. search from the navbar)
   useEffect(() => {
-    // Clear any existing debounce timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    setInput(urlQuery);
+    setPage(1);
+  }, [urlQuery]);
+
+  // Debounce typing into the URL
+  useEffect(() => {
+    if (input === urlQuery) return;
+    const t = setTimeout(() => {
+      setParams(input.trim() ? { q: input.trim() } : {}, { replace: true });
+    }, 450);
+    return () => clearTimeout(t);
+  }, [input, urlQuery, setParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const key = `${urlQuery}|${filter}|${page}`;
+    const cached = cacheRef.current[key];
+
+    if (cached && Date.now() - cached.at < CACHE_TTL) {
+      setAnimeList(cached.data);
+      setTotalPages(cached.pages);
+      setError(null);
+      setLoading(false);
+      return;
     }
-    
-    // Set up debounce for search queries
-    debounceTimerRef.current = setTimeout(() => {
-      const fetchAnime = async () => {
-        setLoading(true);
-        
-        try {
-          // Create a cache key based on current query parameters
-          const cacheKey = `${searchQuery}-${filter}-${page}`;
-          
-          // Check if we have cached results
-          if (cacheRef.current[cacheKey]) {
-            setAnimeList(cacheRef.current[cacheKey].data);
-            setTotalPages(cacheRef.current[cacheKey].pages);
-            setLoading(false);
-            setError(null);
-            return;
-          }
-          
-          let result;
 
-          if (searchQuery) {
-            result = await searchAnime(searchQuery, page, 12);
-          } else {
-            switch (filter) {
-              case 'airing':
-                result = await fetchAiring(page, 12);
-                break;
-              case 'upcoming':
-                result = await fetchUpcoming(page, 12);
-                break;
-              case 'popular':
-                result = await fetchPopular(page, 12);
-                break;
-              default:
-                result = await fetchAiring(page, 12);
-            }
-          }
+    setLoading(true);
+    const run = urlQuery
+      ? searchAnime(urlQuery, page, PER_PAGE)
+      : TABS.find((t) => t.key === filter).fetcher(page, PER_PAGE);
 
-          if (result.data && result.data.length > 0) {
-            // Cache the results
-            const uniqueAnime = Array.from(
-              new Map(result.data.map((anime) => [anime.mal_id, anime])).values()
-            );
-            cacheRef.current[cacheKey] = {
-              data: uniqueAnime,
-              pages: result.pagination?.last_visible_page || 1,
-              timestamp: Date.now()
-            };
-            
-            setAnimeList(uniqueAnime);
-            setTotalPages(result.pagination?.last_visible_page || 1);
-            setError(null);
-          } else {
-            setAnimeList([]);
-            setError("No anime data found");
-          }
-        } catch (err) {
-          setError(`Error fetching anime: ${err.message}`);
-          console.error("Failed to fetch anime:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
+    run
+      .then((result) => {
+        if (cancelled) return;
+        const unique = Array.from(new Map(result.data.map((a) => [a.mal_id, a])).values());
+        const pages = result.pagination?.last_visible_page || 1;
+        cacheRef.current[key] = { data: unique, pages, at: Date.now() };
+        setAnimeList(unique);
+        setTotalPages(pages);
+        setError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to fetch anime:', err);
+        setError("Couldn't load anime. Check your connection and try again.");
+      })
+      .finally(() => !cancelled && setLoading(false));
 
-      fetchAnime();
-    }, searchQuery ? 500 : 0); // 500ms debounce for search queries, no debounce for filter changes
-    
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      cancelled = true;
     };
-  }, [page, filter, searchQuery]);
+  }, [urlQuery, filter, page, retry]);
 
-  // Clear old cache entries (older than 5 minutes)
-  useEffect(() => {
-    const cleanupInterval = setInterval(() => {
-      const now = Date.now();
-      Object.keys(cacheRef.current).forEach(key => {
-        if (now - cacheRef.current[key].timestamp > 5 * 60 * 1000) {
-          delete cacheRef.current[key];
-        }
-      });
-    }, 60000); // Check every minute
-    
-    return () => clearInterval(cleanupInterval);
-  }, []);
-
-  // Handle search input with debouncing
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Search is already debounced in the useEffect
-    setPage(1); // Reset to first page on new search
+  const changeFilter = (key) => {
+    setFilter(key);
+    setPage(1);
+    if (urlQuery) setParams({}, { replace: true });
   };
 
-  // Handle filter change
-  const handleFilterChange = (newFilter) => {
-    setFilter(newFilter);
-    setPage(1); // Reset to first page on filter change
-    setSearchQuery(''); // Clear search when changing filters
+  const changePage = (next) => {
+    if (next < 1 || next > totalPages) return;
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle page change
-  const handlePageChange = (newPage) => {
-    if (newPage > 0 && newPage <= totalPages) {
-      setPage(newPage);
-      // Scroll to top when page changes
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  // Handle input change with debouncing built in
-  const handleInputChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
+  const heading = urlQuery ? `Results for "${urlQuery}"` : TABS.find((t) => t.key === filter).label;
 
   return (
-    <section className="min-h-screen">
-      {/* Hero Section from Home page */}
-      <div className="relative z-10 flex flex-col items-center justify-center text-center text-white min-h-[50vh] px-4 pt-20 pb-16">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="absolute inset-0 z-[-1] bg-[url('/hero-bg.jpg')] bg-cover bg-center opacity-20"
-        />
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:py-8">
+      {!urlQuery && <Spotlight />}
 
-        <motion.h1
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2 }}
-          className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg bg-clip-text text-transparent bg-pink-500"
-        >
-          <span className="text-white">Ani</span>
-          <span className="font-extrabold">Newz</span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 1 }}
-          className="text-xl md:text-2xl font-light max-w-2xl drop-shadow-md mb-12"
-        >
-          Stay updated with the latest upcoming anime releases and news!
-        </motion.p>
-
-        {/* Search Bar from Home page */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 1 }}
-          className="w-full max-w-2xl mx-auto relative"
-        >
-          <div className="relative flex">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400 " />
-            </div>
-            <input
-              type="text"
-              className="pl-10 pr-4 py-3 w-full rounded-lg bg-black/50 border border-pink-500/30 text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50"
-              placeholder="Search for anime..."
-              value={searchQuery}
-              onChange={handleInputChange}
-            />
-            <button 
-              type="submit"
-              onClick={handleSearch}
-              disabled={loading}
-              className={`px-6 py-3 text-white font-medium rounded-xl ml-1 transition-colors ${
-                loading 
-                  ? 'bg-gray-600 cursor-not-allowed' 
-                  : 'bg-pink-600 hover:bg-pink-700'
-              }`}
+      {/* Search */}
+      <div className="mx-auto max-w-2xl">
+        <label htmlFor="home-search" className="sr-only">
+          Search anime
+        </label>
+        <div className="glass relative flex items-center rounded-lg shadow-lg focus-within:border-pink-500/60 focus-within:ring-2 focus-within:ring-pink-500/30">
+          <Search className="pointer-events-none absolute left-4 h-5 w-5 text-gray-400" />
+          <input
+            id="home-search"
+            type="search"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Search anime by title..."
+            className="w-full bg-transparent py-3.5 pl-12 pr-12 text-white placeholder-gray-400 outline-none [&::-webkit-search-cancel-button]:hidden"
+          />
+          {input && (
+            <button
+              onClick={() => {
+                setInput('');
+                setParams({}, { replace: true });
+              }}
+              aria-label="Clear search"
+              className="absolute right-3 rounded-full p-1.5 text-gray-400 transition hover:bg-white/10 hover:text-white"
             >
-              Search
+              <X className="h-4 w-4" />
             </button>
-          </div>
-        </motion.div>
+          )}
+        </div>
       </div>
 
-      <div className="container mx-auto px-4 pb-16">
-        {/* Filter buttons from AnimeList */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          <button 
-            onClick={() => handleFilterChange('airing')}
-            disabled={loading}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              filter === 'airing' 
-                ? 'bg-pink-600 text-white' 
-                : loading 
-                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            Currently Airing
-          </button>
-          <button 
-            onClick={() => handleFilterChange('upcoming')}
-            disabled={loading}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              filter === 'upcoming' 
-                ? 'bg-pink-600 text-white' 
-                : loading 
-                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            Upcoming
-          </button>
-          <button 
-            onClick={() => handleFilterChange('popular')}
-            disabled={loading}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              filter === 'popular' 
-                ? 'bg-pink-600 text-white' 
-                : loading 
-                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            Most Popular
-          </button>
-        </div>
+      {/* Tabs + heading */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-extrabold text-white sm:text-3xl">{heading}</h1>
 
-        {/* Content heading with result count */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-white text-3xl md:text-4xl font-bold drop-shadow-lg">
-            {filter === 'airing' ? 'Currently Airing' : 
-             filter === 'upcoming' ? 'Upcoming Anime' : 
-             filter === 'popular' ? 'Most Popular' : 'All Anime'}
-          </h2>
-        </div>
-
-        {/* Loading state */}
-        {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
-
-        {/* Error state */}
-        {error && !loading && (
-          <div className="bg-red-500/20 border border-red-500 text-red-300 p-4 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!loading && !error && animeList.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-2xl font-semibold text-gray-400 mb-4">No anime found</p>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Try adjusting your search or filter criteria to find what you're looking for.
-            </p>
-          </div>
-        )}
-
-        {/* Anime grid with motion animations */}
-        {!loading && !error && animeList.length > 0 && (
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1 }}
-          >
-            {animeList.map((anime) => (
-              <motion.div 
-                key={anime.mal_id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+        {!urlQuery && (
+          <div role="tablist" className="flex w-full gap-6 border-b border-white/10 sm:w-auto">
+            {TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={filter === key}
+                onClick={() => changeFilter(key)}
+                className={`-mb-px whitespace-nowrap border-b-2 pb-2 text-sm font-medium transition ${
+                  filter === key ? 'border-pink-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
+                }`}
               >
-                <AnimeCard anime={anime} user={{}} />
-              </motion.div>
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sm:hidden">{label.replace(' now', '').replace('Most ', '')}</span>
+              </button>
             ))}
-          </motion.div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-8 gap-2">
-            <button
-              type='button'
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1 || loading}
-              className={`px-4 py-2 rounded-lg text-white ${
-                page === 1 || loading ? 'bg-gray-700 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700'
-              }`}
-            >
-              Previous
-            </button>
-            
-            <div className="flex items-center px-4">
-              <span className="text-white">
-                Page {page} of {totalPages}
-              </span>
-            </div>
-            
-            <button
-              type='button'
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages || loading}
-              className={`px-4 py-2 rounded-lg text-white ${
-                page === totalPages || loading ? 'bg-gray-700 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700'
-              }`}
-            >
-              Next
-            </button>
           </div>
         )}
       </div>
-    </section>
+
+      {/* Content */}
+      {loading && <GridSkeleton count={PER_PAGE} />}
+
+      {error && !loading && (
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg p-8 text-center">
+          <AlertCircle className="h-8 w-8 text-pink-400" />
+          <p className="text-gray-200">{error}</p>
+          <button onClick={() => setRetry((r) => r + 1)} className="btn-primary">
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && animeList.length === 0 && (
+        <div className="glass mx-auto max-w-md rounded-lg p-10 text-center">
+          <p className="text-lg font-semibold text-gray-100">No anime found</p>
+          <p className="mt-2 text-sm text-gray-400">Try a different title or spelling.</p>
+        </div>
+      )}
+
+      {!loading && !error && animeList.length > 0 && <AnimeGrid items={animeList} />}
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-3" aria-label="Pagination">
+          <button onClick={() => changePage(page - 1)} disabled={page === 1} className="btn-ghost">
+            <ChevronLeft className="h-4 w-4" />
+            Prev
+          </button>
+          <span className="text-sm text-gray-300">
+            Page <span className="font-semibold text-white">{page}</span> of {Math.min(totalPages, 99)}
+          </span>
+          <button onClick={() => changePage(page + 1)} disabled={page >= totalPages} className="btn-ghost">
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </nav>
+      )}
+    </div>
   );
 };
 

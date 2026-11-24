@@ -6,6 +6,7 @@ const ANIME_FIELDS = `
   title { romaji english }
   coverImage { large extraLarge }
   bannerImage
+  format
   description(asHtml: false)
   episodes
   status
@@ -38,6 +39,8 @@ export const normalize = (anime) => ({
   mal_id: anime.id,
   title: anime.title?.english || anime.title?.romaji || 'Unknown',
   images: { jpg: { image_url: anime.coverImage?.large, large_image_url: anime.coverImage?.extraLarge } },
+  banner: anime.bannerImage,
+  type: anime.format ? anime.format.replace(/_/g, ' ') : null,
   synopsis: anime.description?.replace(/<[^>]+>/g, '') || '',
   score: anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null,
   members: anime.popularity,
