@@ -1,7 +1,6 @@
-// src/utils/fetchMALNews.js
+// Served by api/news.js (cached, server-side RSS parse)
 export const fetchMALNews = async () => {
-    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=https://myanimelist.net/rss/news.xml`);
-    const data = await res.json();
-    return data.items.slice(0, 10);
-  };
-  
+  const res = await fetch('/api/news');
+  if (!res.ok) throw new Error(`News error: ${res.status}`);
+  return res.json();
+};

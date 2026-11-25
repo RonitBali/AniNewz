@@ -20,6 +20,7 @@ const ANIME_FIELDS = `
   studios(isMain: true) { nodes { name } }
   trailer { id site }
   siteUrl
+  externalLinks { site url type }
 `;
 
 const gql = async (query, variables) => {
@@ -57,89 +58,45 @@ export const normalize = (anime) => ({
   season: anime.season,
   year: anime.seasonYear,
   trailer: anime.trailer,
+  streamingLinks: (anime.externalLinks || [])
+    .filter((l) => l.type === 'STREAMING' && l.url)
+    .map((l) => ({ site: l.site, url: l.url })),
 });
 
-// Fetch currently airing anime
-export const fetchAiring = async (page = 1, perPage = 12) => {
+// Build one page query. `args` is the media(...) argument string.
+const buildQuery = (args, vars) => {
+  const declared = Object.entries(vars).map(([k, t]) => `$${k}: ${t}`).join(', ');
   const query = `
-    query ($page: Int, $perPage: Int) {
+    query ($page: Int, $perPage: Int${declared ? ', ' + declared : ''}) {
       Page(page: $page, perPage: $perPage) {
         pageInfo { total currentPage lastPage hasNextPage }
-        media(status: RELEASING, type: ANIME, sort: POPULARITY_DESC) { ${ANIME_FIELDS} }
+        media(${args}) { ${ANIME_FIELDS} }
       }
     }
   `;
-  const data = await gql(query, { page, perPage });
+  return query;
+};
+
+const runPage = async (args, types, values, page, perPage) => {
+  const query = buildQuery(args, types);
+  const data = await gql(query, { page, perPage, ...values });
   return {
     data: data.Page.media.map(normalize),
     pagination: { last_visible_page: data.Page.pageInfo.lastPage },
   };
 };
 
-// Fetch upcoming anime
-export const fetchUpcoming = async (page = 1, perPage = 12) => {
-  const query = `
-    query ($page: Int, $perPage: Int) {
-      Page(page: $page, perPage: $perPage) {
-        pageInfo { total currentPage lastPage hasNextPage }
-        media(status: NOT_YET_RELEASED, type: ANIME, sort: POPULARITY_DESC) { ${ANIME_FIELDS} }
-      }
-    }
-  `;
-  const data = await gql(query, { page, perPage });
-  return {
-    data: data.Page.media.map(normalize),
-    pagination: { last_visible_page: data.Page.pageInfo.lastPage },
-  };
-};
+export const fetchAiring = (page = 1, perPage = 12) =>
+  runPage('status: RELEASING, type: ANIME, sort: POPULARITY_DESC', {}, {}, page, perPage);
 
-// Fetch most popular anime
-export const fetchPopular = async (page = 1, perPage = 12) => {
-  const query = `
-    query ($page: Int, $perPage: Int) {
-      Page(page: $page, perPage: $perPage) {
-        pageInfo { total currentPage lastPage hasNextPage }
-        media(type: ANIME, sort: POPULARITY_DESC) { ${ANIME_FIELDS} }
-      }
-    }
-  `;
-  const data = await gql(query, { page, perPage });
-  return {
-    data: data.Page.media.map(normalize),
-    pagination: { last_visible_page: data.Page.pageInfo.lastPage },
-  };
-};
+export const fetchUpcoming = (page = 1, perPage = 12) =>
+  runPage('status: NOT_YET_RELEASED, type: ANIME, sort: POPULARITY_DESC', {}, {}, page, perPage);
 
-// Fetch top anime (by score)
-export const fetchTopAnime = async (page = 1, perPage = 25) => {
-  const query = `
-    query ($page: Int, $perPage: Int) {
-      Page(page: $page, perPage: $perPage) {
-        pageInfo { total currentPage lastPage hasNextPage }
-        media(type: ANIME, sort: SCORE_DESC, status_not: NOT_YET_RELEASED) { ${ANIME_FIELDS} }
-      }
-    }
-  `;
-  const data = await gql(query, { page, perPage });
-  return {
-    data: data.Page.media.map(normalize),
-    pagination: { last_visible_page: data.Page.pageInfo.lastPage },
-  };
-};
+export const fetchPopular = (page = 1, perPage = 12) =>
+  runPage('type: ANIME, sort: POPULARITY_DESC', {}, {}, page, perPage);
 
-// Search anime by title
-export const searchAnime = async (searchQuery, page = 1, perPage = 12) => {
-  const query = `
-    query ($search: String, $page: Int, $perPage: Int) {
-      Page(page: $page, perPage: $perPage) {
-        pageInfo { total currentPage lastPage hasNextPage }
-        media(search: $search, type: ANIME, sort: SEARCH_MATCH) { ${ANIME_FIELDS} }
-      }
-    }
-  `;
-  const data = await gql(query, { search: searchQuery, page, perPage });
-  return {
-    data: data.Page.media.map(normalize),
-    pagination: { last_visible_page: data.Page.pageInfo.lastPage },
-  };
-};
+export const fetchTopAnime = (page = 1, perPage = 25) =>
+  runPage('type: ANIME, sort: SCORE_DESC, status_not: NOT_YET_RELEASED', {}, {}, page, perPage);
+
+export const searchAnime = (searchQuery, page = 1, perPage = 12) =>
+  runPage('search: $search, type: ANIME, sort: SEARCH_MATCH', { search: 'String' }, { search: searchQuery }, page, perPage);

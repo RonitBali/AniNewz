@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
@@ -17,7 +17,12 @@ export const app = initializeApp(firebaseConfig);
 
 let analytics;
 if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
+  // getAnalytics throws where unsupported (blocked storage, some browsers)
+  isSupported()
+    .then((ok) => {
+      if (ok) analytics = getAnalytics(app);
+    })
+    .catch(() => {});
 }
 
 export const database = getDatabase(app);

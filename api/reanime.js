@@ -4,11 +4,12 @@
 const BASE = 'https://reanime.cz';
 
 export default async function handler(req, res) {
-  const { id, title = '' } = req.query;
+  const { id = '' } = req.query;
+  const title = String(req.query.title || '').slice(0, 200);
   const searchUrl = `${BASE}/search?q=${encodeURIComponent(title)}`;
 
   try {
-    if (id && title) {
+    if (/^d{1,9}$/.test(id) && title) {
       const r = await fetch(searchUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0' },
         signal: AbortSignal.timeout(8000),

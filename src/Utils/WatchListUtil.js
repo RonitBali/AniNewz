@@ -1,4 +1,4 @@
-import { getDatabase, ref, set, get } from 'firebase/database';
+import { getDatabase, ref, set } from 'firebase/database';
 import { app } from '../Utils/Firebase';
 
 // Add anime to user's watchlist
@@ -25,20 +25,6 @@ export const addToWatchlist = async (user, anime) => {
   } catch (error) {
     console.error("Error adding to watchlist:", error);
     return { success: false, message: "Failed to add to watchlist" };
-  }
-};
-
-// Check if anime is in watchlist
-export const isInWatchlist = async (user, animeId) => {
-  if (!user) return false;
-  
-  try {
-    const db = getDatabase(app);
-    const snapshot = await get(ref(db, `users/${user.uid}/watchlist/${animeId}`));
-    return snapshot.exists();
-  } catch (error) {
-    console.error("Error checking watchlist:", error);
-    return false;
   }
 };
 

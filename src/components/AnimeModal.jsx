@@ -133,6 +133,19 @@ const AnimeModal = ({ anime, onClose }) => {
             </p>
           </div>
 
+          {anime.streamingLinks?.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-pink-400">Watch legally</h3>
+              <div className="flex flex-wrap gap-2">
+                {anime.streamingLinks.map((l) => (
+                  <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="btn-ghost px-3 py-1.5 text-xs">
+                    {l.site}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {anime.url && (
             <a
               href={anime.url}
