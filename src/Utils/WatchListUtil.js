@@ -17,6 +17,8 @@ export const addToWatchlist = async (user, anime) => {
       type: anime.type || "Unknown",
       score: anime.score || null,
       status: "Not Watched",
+      episodes: anime.episodes || null,
+      progress: 0,
       addedAt: new Date().toISOString()
     };
 

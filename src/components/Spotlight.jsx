@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Info, Star } from 'lucide-react';
-import { fetchAiring } from '../api/anilist';
+import { fetchAiring, isAbort } from '../api/anilist';
 import WatchButton from './WatchButton';
 import AnimeModal from './AnimeModal';
 import { statusInfo } from '../Utils/animeFormat';
@@ -9,6 +9,9 @@ import { statusInfo } from '../Utils/animeFormat';
 // Rotating banner of the most popular airing shows.
 // All slides stay mounted and cross-fade by opacity, so each banner image is
 // already loaded when its turn comes (no blank frame while it downloads).
+const reducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
 const Spotlight = () => {
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
@@ -18,7 +21,8 @@ const Spotlight = () => {
 
   useEffect(() => {
     let cancelled = false;
-    fetchAiring(1, 8)
+    const controller = new AbortController();
+    fetchAiring(1, 8, controller.signal)
       .then((res) => {
         if (cancelled) return;
         const list = res.data.filter((a) => a.banner).slice(0, 5);
@@ -35,14 +39,18 @@ const Spotlight = () => {
           )
         ).then(() => !cancelled && setReady(true));
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!isAbort(err)) console.error(err);
+      });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 
   useEffect(() => {
-    if (!ready || items.length < 2 || paused || selected) return;
+    // No autoplay for people who asked their system to reduce motion
+    if (!ready || items.length < 2 || paused || selected || reducedMotion()) return;
     const timer = setInterval(() => setIndex((i) => (i + 1) % items.length), 7000);
     return () => clearInterval(timer);
   }, [ready, items.length, paused, selected]);

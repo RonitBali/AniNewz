@@ -26,6 +26,7 @@ const Footer = () => {
         <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-gray-300" aria-label="Footer">
           <Link to="/" className="hover:text-pink-400">Discover</Link>
           <Link to="/topanime" className="hover:text-pink-400">Top Anime</Link>
+          <Link to="/schedule" className="hover:text-pink-400">Schedule</Link>
           <Link to="/news" className="hover:text-pink-400">News</Link>
           <Link to="/watchlist" className="hover:text-pink-400">Watchlist</Link>
         </nav>

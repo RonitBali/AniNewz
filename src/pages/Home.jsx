@@ -1,24 +1,49 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import AnimeGrid from '../components/AnimeGrid';
 import Spotlight from '../components/Spotlight';
 import { GridSkeleton } from '../components/Skeleton';
-import { fetchAiring, fetchUpcoming, fetchPopular, searchAnime } from '../api/anilist';
+import { browseAnime, isAbort, GENRES, SEASONS, FORMATS } from '../api/anilist';
+import useDocumentTitle from '../Utils/useDocumentTitle';
 
 const TABS = [
-  { key: 'airing', label: 'Airing now', fetcher: fetchAiring },
-  { key: 'upcoming', label: 'Upcoming', fetcher: fetchUpcoming },
-  { key: 'popular', label: 'Most popular', fetcher: fetchPopular },
+  { key: 'airing', label: 'Airing now' },
+  { key: 'upcoming', label: 'Upcoming' },
+  { key: 'popular', label: 'Most popular' },
 ];
 
 const PER_PAGE = 12;
-const CACHE_TTL = 5 * 60 * 1000;
+const FILTER_KEYS = ['genre', 'year', 'season', 'format'];
+const thisYear = new Date().getFullYear();
+const YEARS = Array.from({ length: thisYear + 2 - 1990 }, (_, i) => String(thisYear + 1 - i));
+const title = (s) => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, ' ');
+
+const FilterSelect = ({ label, value, onChange, options, format = (x) => x }) => (
+  <label className="flex flex-col gap-1 text-xs text-gray-400">
+    {label}
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="rounded-md border border-white/15 bg-[#12121c] px-2.5 py-2 text-sm text-gray-100 outline-none focus:border-pink-500/60"
+    >
+      <option value="">Any</option>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {format(o)}
+        </option>
+      ))}
+    </select>
+  </label>
+);
 
 const Home = () => {
-  // The search term lives in the URL (?q=) so the navbar search and back button both work.
+  // Search term and filters live in the URL so links, back button and the navbar search all work.
   const [params, setParams] = useSearchParams();
   const urlQuery = params.get('q') || '';
+  const filters = Object.fromEntries(FILTER_KEYS.map((k) => [k, params.get(k) || '']));
+  const filterSig = FILTER_KEYS.map((k) => filters[k]).join('|');
+  const activeFilters = FILTER_KEYS.filter((k) => filters[k]).length;
 
   const [input, setInput] = useState(urlQuery);
   const [filter, setFilter] = useState('airing');
@@ -28,7 +53,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retry, setRetry] = useState(0);
-  const cacheRef = useRef({});
+
+  useDocumentTitle(urlQuery ? `Search: ${urlQuery}` : 'Discover anime');
 
   // Keep the input in sync when the URL changes (e.g. search from the navbar)
   useEffect(() => {
@@ -36,59 +62,72 @@ const Home = () => {
     setPage(1);
   }, [urlQuery]);
 
-  // Debounce typing into the URL
+  // Debounce typing into the URL (keeps filters)
   useEffect(() => {
     if (input === urlQuery) return;
     const t = setTimeout(() => {
-      setParams(input.trim() ? { q: input.trim() } : {}, { replace: true });
+      const next = new URLSearchParams(params);
+      if (input.trim()) next.set('q', input.trim());
+      else next.delete('q');
+      setParams(next, { replace: true });
     }, 450);
     return () => clearTimeout(t);
-  }, [input, urlQuery, setParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, urlQuery]);
 
+  // Fetch. Responses are cached in sessionStorage by the API layer; a new
+  // request aborts the old one so stale responses never land.
   useEffect(() => {
-    let cancelled = false;
-    const key = `${urlQuery}|${filter}|${page}`;
-    const cached = cacheRef.current[key];
-
-    if (cached && Date.now() - cached.at < CACHE_TTL) {
-      setAnimeList(cached.data);
-      setTotalPages(cached.pages);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
+    const controller = new AbortController();
     setLoading(true);
-    const run = urlQuery
-      ? searchAnime(urlQuery, page, PER_PAGE)
-      : TABS.find((t) => t.key === filter).fetcher(page, PER_PAGE);
-
-    run
+    browseAnime({ tab: filter, search: urlQuery, filters, page, perPage: PER_PAGE, signal: controller.signal })
       .then((result) => {
-        if (cancelled) return;
         const unique = Array.from(new Map(result.data.map((a) => [a.mal_id, a])).values());
-        const pages = result.pagination?.last_visible_page || 1;
-        cacheRef.current[key] = { data: unique, pages, at: Date.now() };
         setAnimeList(unique);
-        setTotalPages(pages);
+        setTotalPages(result.pagination?.last_visible_page || 1);
         setError(null);
+        setLoading(false);
       })
       .catch((err) => {
-        if (cancelled) return;
+        if (isAbort(err)) return;
         console.error('Failed to fetch anime:', err);
         setError("Couldn't load anime. Check your connection and try again.");
-      })
-      .finally(() => !cancelled && setLoading(false));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [urlQuery, filter, page, retry]);
+        setLoading(false);
+      });
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlQuery, filter, filterSig, page, retry]);
 
   const changeFilter = (key) => {
     setFilter(key);
     setPage(1);
-    if (urlQuery) setParams({}, { replace: true });
+    if (urlQuery) {
+      const next = new URLSearchParams(params);
+      next.delete('q');
+      setParams(next, { replace: true });
+    }
+  };
+
+  const setFilterValue = (key, value) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setPage(1);
+    setParams(next, { replace: true });
+  };
+
+  const clearFilters = () => {
+    const next = new URLSearchParams(params);
+    FILTER_KEYS.forEach((k) => next.delete(k));
+    setPage(1);
+    setParams(next, { replace: true });
+  };
+
+  const clearSearch = () => {
+    setInput('');
+    const next = new URLSearchParams(params);
+    next.delete('q');
+    setParams(next, { replace: true });
   };
 
   const changePage = (next) => {
@@ -101,7 +140,7 @@ const Home = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:py-8">
-      {!urlQuery && <Spotlight />}
+      {!urlQuery && activeFilters === 0 && <Spotlight />}
 
       {/* Search */}
       <div className="mx-auto max-w-2xl">
@@ -120,10 +159,7 @@ const Home = () => {
           />
           {input && (
             <button
-              onClick={() => {
-                setInput('');
-                setParams({}, { replace: true });
-              }}
+              onClick={clearSearch}
               aria-label="Clear search"
               className="absolute right-3 rounded-full p-1.5 text-gray-400 transition hover:bg-white/10 hover:text-white"
             >
@@ -157,6 +193,17 @@ const Home = () => {
         )}
       </div>
 
+      {/* Filters */}
+      <div className="glass grid grid-cols-2 items-end gap-3 rounded-lg p-3 sm:grid-cols-5">
+        <FilterSelect label="Genre" value={filters.genre} onChange={(v) => setFilterValue('genre', v)} options={GENRES} />
+        <FilterSelect label="Year" value={filters.year} onChange={(v) => setFilterValue('year', v)} options={YEARS} />
+        <FilterSelect label="Season" value={filters.season} onChange={(v) => setFilterValue('season', v)} options={SEASONS} format={title} />
+        <FilterSelect label="Format" value={filters.format} onChange={(v) => setFilterValue('format', v)} options={FORMATS} format={(f) => (f === 'TV_SHORT' ? 'TV short' : f === 'TV' ? 'TV' : title(f))} />
+        <button onClick={clearFilters} disabled={activeFilters === 0} className="btn-ghost py-2">
+          Clear filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
+        </button>
+      </div>
+
       {/* Content */}
       {loading && <GridSkeleton count={PER_PAGE} />}
 
@@ -173,7 +220,7 @@ const Home = () => {
       {!loading && !error && animeList.length === 0 && (
         <div className="glass mx-auto max-w-md rounded-lg p-10 text-center">
           <p className="text-lg font-semibold text-gray-100">No anime found</p>
-          <p className="mt-2 text-sm text-gray-400">Try a different title or spelling.</p>
+          <p className="mt-2 text-sm text-gray-400">Try a different title, or loosen the filters.</p>
         </div>
       )}
 

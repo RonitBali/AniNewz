@@ -1,0 +1,28 @@
+{
+  "name": "AniNewz",
+  "short_name": "AniNewz",
+  "description": "Discover anime, track what you watch and read the latest anime news.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d0d16",
+  "theme_color": "#0f1020",
+  "icons": [
+    {
+      "src": "/h-4.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Airing schedule",
+      "url": "/schedule"
+    },
+    {
+      "name": "My watchlist",
+      "url": "/watchlist"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import Authentication from './Authentication';
 const LINKS = [
   { to: '/', label: 'Discover', end: true },
   { to: '/topanime', label: 'Top Anime' },
+  { to: '/schedule', label: 'Schedule' },
   { to: '/news', label: 'News' },
   { to: '/watchlist', label: 'Watchlist' },
 ];

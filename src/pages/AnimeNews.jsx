@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, AlertCircle } from 'lucide-react';
 import { fetchMALNews } from '../Utils/fetchMALNews';
+import useDocumentTitle from '../Utils/useDocumentTitle';
 
 const AnimeNews = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  useDocumentTitle('Anime news');
 
   useEffect(() => {
     fetchMALNews()

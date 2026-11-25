@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import AnimeGrid from '../components/AnimeGrid';
 import { GridSkeleton } from '../components/Skeleton';
-import { fetchTopAnime } from '../api/anilist';
+import { fetchTopAnime, isAbort } from '../api/anilist';
+import useDocumentTitle from '../Utils/useDocumentTitle';
 
 const SORTS = [
   { key: 'score', label: 'Score' },
@@ -16,18 +17,22 @@ const TopAnime = () => {
   const [error, setError] = useState(null);
   const [sortMethod, setSortMethod] = useState('score');
 
+  useDocumentTitle('Top anime');
+
   useEffect(() => {
-    let cancelled = false;
-    fetchTopAnime(1, 24)
-      .then((result) => !cancelled && setTopAnime(result.data))
-      .catch((err) => {
-        console.error(err);
-        if (!cancelled) setError("Couldn't load the top anime list. Please try again later.");
+    const controller = new AbortController();
+    fetchTopAnime(1, 24, controller.signal)
+      .then((result) => {
+        setTopAnime(result.data);
+        setLoading(false);
       })
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
+      .catch((err) => {
+        if (isAbort(err)) return;
+        console.error(err);
+        setError("Couldn't load the top anime list. Please try again later.");
+        setLoading(false);
+      });
+    return () => controller.abort();
   }, []);
 
   const sorted = useMemo(() => {
