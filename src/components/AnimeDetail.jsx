@@ -61,7 +61,7 @@ const AnimeDetail = ({ anime, onClose }) => {
         <img
           src={cover}
           alt={anime.title}
-          className="mx-auto h-48 w-32 shrink-0 rounded-lg object-cover shadow-2xl ring-2 ring-white/20 sm:mx-0 sm:h-60 sm:w-40"
+          className="mx-auto h-48 w-32 shrink-0 rounded-2xl object-cover shadow-2xl ring-2 ring-white/20 sm:mx-0 sm:h-60 sm:w-40"
         />
 
         <div className="min-w-0 flex-1 sm:pt-16">
@@ -109,7 +109,7 @@ const AnimeDetail = ({ anime, onClose }) => {
 
       <div className="space-y-6 px-5 pb-8 sm:px-8">
         {showTrailer && embed && (
-          <div className="aspect-video w-full overflow-hidden rounded-lg border border-white/10 bg-black">
+          <div className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black">
             <iframe
               src={embed}
               title={`${anime.title} trailer`}
@@ -123,7 +123,7 @@ const AnimeDetail = ({ anime, onClose }) => {
 
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {facts.map(({ icon: Icon, label, value }) => (
-            <div key={label} className="rounded-md border border-white/10 bg-white/5 p-3">
+            <div key={label} className="rounded-2xl border border-white/15 bg-white/10 p-3">
               <dt className="flex items-center gap-1.5 text-xs text-gray-400">
                 <Icon className="h-3.5 w-3.5" />
                 {label}

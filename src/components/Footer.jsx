@@ -10,7 +10,7 @@ const SOCIALS = [
 
 const Footer = () => {
   return (
-    <footer className="glass-strong mt-12 border-x-0 border-b-0">
+    <footer className="mt-12 w-full border-t border-white/10 bg-[#0d0d16]">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
         <div>
           <p className="text-lg font-extrabold text-pink-500">AniNewz</p>

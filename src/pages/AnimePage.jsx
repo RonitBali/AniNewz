@@ -37,17 +37,17 @@ const AnimePage = () => {
         Back to Discover
       </Link>
 
-      {!anime && !error && <div className="skeleton h-[32rem] w-full rounded-xl" />}
+      {!anime && !error && <div className="skeleton h-[32rem] w-full rounded-3xl" />}
 
       {error && (
-        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg p-8 text-center">
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-2xl p-8 text-center">
           <AlertCircle className="h-8 w-8 text-pink-400" />
           <p className="text-gray-200">{error}</p>
         </div>
       )}
 
       {anime && (
-        <div className="glass-strong relative overflow-hidden rounded-xl shadow-2xl">
+        <div className="glass-strong relative overflow-hidden rounded-3xl shadow-2xl">
           <AnimeDetail anime={anime} />
         </div>
       )}

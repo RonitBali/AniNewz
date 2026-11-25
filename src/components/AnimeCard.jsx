@@ -19,10 +19,10 @@ const AnimeCard = ({ anime, onOpen, rank }) => {
       <button
         type="button"
         onClick={() => onOpen?.(anime)}
-        className="block w-full rounded-lg text-left"
+        className="block w-full rounded-2xl text-left"
         aria-label={`View details for ${anime.title}`}
       >
-        <div className="relative aspect-[2/3] overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-lg transition duration-300 group-hover:-translate-y-1 group-hover:border-pink-500/50">
+        <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg transition duration-300 group-hover:-translate-y-1 group-hover:border-pink-500/50">
           <img
             src={imgUrl}
             alt=""

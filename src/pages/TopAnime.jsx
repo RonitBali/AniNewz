@@ -77,7 +77,7 @@ const TopAnime = () => {
       {loading && <GridSkeleton count={12} />}
 
       {error && !loading && (
-        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg p-8 text-center">
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-2xl p-8 text-center">
           <AlertCircle className="h-8 w-8 text-pink-400" />
           <p className="text-gray-200">{error}</p>
         </div>

@@ -56,12 +56,12 @@ const Spotlight = () => {
   }, [ready, items.length, paused, selected]);
 
   if (!ready) {
-    return <div className="skeleton h-64 w-full rounded-xl sm:h-80 lg:h-96" />;
+    return <div className="skeleton h-64 w-full rounded-3xl sm:h-80 lg:h-96" />;
   }
 
   return (
     <section
-      className="relative h-64 w-full overflow-hidden rounded-xl border border-white/10 bg-[#0d0d16] shadow-2xl sm:h-80 lg:h-96"
+      className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d16] shadow-2xl sm:h-80 lg:h-96"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-label="Featured anime"

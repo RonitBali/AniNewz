@@ -29,13 +29,13 @@ const AnimeNews = () => {
       {loading && (
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="skeleton h-28 w-full rounded-lg" />
+            <div key={i} className="skeleton h-28 w-full rounded-2xl" />
           ))}
         </div>
       )}
 
       {error && !loading && (
-        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg p-8 text-center">
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-2xl p-8 text-center">
           <AlertCircle className="h-8 w-8 text-pink-400" />
           <p className="text-gray-200">Couldn't load the news right now. Try again in a moment.</p>
         </div>
@@ -49,7 +49,7 @@ const AnimeNews = () => {
               href={item.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="glass group block rounded-lg p-5 transition hover:-translate-y-0.5 hover:border-pink-500/50"
+              className="glass group block rounded-2xl p-5 transition hover:-translate-y-0.5 hover:border-pink-500/50"
             >
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-semibold leading-snug text-gray-100 transition group-hover:text-pink-400">{item.title}</h2>

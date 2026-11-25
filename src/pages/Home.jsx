@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, X, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Search, X, ChevronLeft, ChevronRight, AlertCircle, SlidersHorizontal } from 'lucide-react';
 import AnimeGrid from '../components/AnimeGrid';
 import Spotlight from '../components/Spotlight';
+import GlassSelect from '../components/GlassSelect';
 import { GridSkeleton } from '../components/Skeleton';
 import { browseAnime, isAbort, GENRES, SEASONS, FORMATS } from '../api/anilist';
 import useDocumentTitle from '../Utils/useDocumentTitle';
@@ -18,24 +19,6 @@ const FILTER_KEYS = ['genre', 'year', 'season', 'format'];
 const thisYear = new Date().getFullYear();
 const YEARS = Array.from({ length: thisYear + 2 - 1990 }, (_, i) => String(thisYear + 1 - i));
 const title = (s) => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, ' ');
-
-const FilterSelect = ({ label, value, onChange, options, format = (x) => x }) => (
-  <label className="flex flex-col gap-1 text-xs text-gray-400">
-    {label}
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-md border border-white/15 bg-[#12121c] px-2.5 py-2 text-sm text-gray-100 outline-none focus:border-pink-500/60"
-    >
-      <option value="">Any</option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {format(o)}
-        </option>
-      ))}
-    </select>
-  </label>
-);
 
 const Home = () => {
   // Search term and filters live in the URL so links, back button and the navbar search all work.
@@ -147,7 +130,7 @@ const Home = () => {
         <label htmlFor="home-search" className="sr-only">
           Search anime
         </label>
-        <div className="glass relative flex items-center rounded-lg shadow-lg focus-within:border-pink-500/60 focus-within:ring-2 focus-within:ring-pink-500/30">
+        <div className="liquid relative flex items-center rounded-full focus-within:border-white/50 focus-within:ring-2 focus-within:ring-white/20">
           <Search className="pointer-events-none absolute left-4 h-5 w-5 text-gray-400" />
           <input
             id="home-search"
@@ -155,7 +138,7 @@ const Home = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Search anime by title..."
-            className="w-full bg-transparent py-3.5 pl-12 pr-12 text-white placeholder-gray-400 outline-none [&::-webkit-search-cancel-button]:hidden"
+            className="w-full bg-transparent py-3.5 pl-12 pr-12 text-white placeholder-white/70 outline-none [&::-webkit-search-cancel-button]:hidden"
           />
           {input && (
             <button
@@ -174,15 +157,18 @@ const Home = () => {
         <h1 className="text-2xl font-extrabold text-white sm:text-3xl">{heading}</h1>
 
         {!urlQuery && (
-          <div role="tablist" className="flex w-full gap-6 border-b border-white/10 sm:w-auto">
+          <div
+            role="tablist"
+            className="liquid flex w-full gap-1 rounded-full p-1.5 sm:w-auto"
+          >
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
                 role="tab"
                 aria-selected={filter === key}
                 onClick={() => changeFilter(key)}
-                className={`-mb-px whitespace-nowrap border-b-2 pb-2 text-sm font-medium transition ${
-                  filter === key ? 'border-pink-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
+                className={`flex-1 whitespace-nowrap rounded-full border border-transparent px-5 py-2 text-sm font-semibold transition sm:flex-none ${
+                  filter === key ? 'glass-active' : 'text-white hover:bg-white/10'
                 }`}
               >
                 <span className="hidden sm:inline">{label}</span>
@@ -194,15 +180,25 @@ const Home = () => {
       </div>
 
       {/* Filters */}
-      <div className="glass grid grid-cols-2 items-end gap-3 rounded-lg p-3 sm:grid-cols-5">
-        <FilterSelect label="Genre" value={filters.genre} onChange={(v) => setFilterValue('genre', v)} options={GENRES} />
-        <FilterSelect label="Year" value={filters.year} onChange={(v) => setFilterValue('year', v)} options={YEARS} />
-        <FilterSelect label="Season" value={filters.season} onChange={(v) => setFilterValue('season', v)} options={SEASONS} format={title} />
-        <FilterSelect label="Format" value={filters.format} onChange={(v) => setFilterValue('format', v)} options={FORMATS} format={(f) => (f === 'TV_SHORT' ? 'TV short' : f === 'TV' ? 'TV' : title(f))} />
-        <button onClick={clearFilters} disabled={activeFilters === 0} className="btn-ghost py-2">
-          Clear filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
-        </button>
-      </div>
+      <section aria-label="Filters" className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex h-10 items-center gap-2 pr-2 text-sm font-semibold text-white">
+          <SlidersHorizontal className="h-4 w-4" />
+          Filter
+        </span>
+        <GlassSelect label="Genre" value={filters.genre} onChange={(v) => setFilterValue('genre', v)} options={GENRES} />
+        <GlassSelect label="Year" value={filters.year} onChange={(v) => setFilterValue('year', v)} options={YEARS} />
+        <GlassSelect label="Season" value={filters.season} onChange={(v) => setFilterValue('season', v)} options={SEASONS} format={title} />
+        <GlassSelect label="Format" value={filters.format} onChange={(v) => setFilterValue('format', v)} options={FORMATS} format={(f) => (f === 'TV_SHORT' ? 'TV short' : f === 'TV' ? 'TV' : title(f))} />
+        {activeFilters > 0 && (
+          <button
+            onClick={clearFilters}
+            className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-pink-300 transition hover:bg-white/10"
+          >
+            <X className="h-4 w-4" />
+            Clear ({activeFilters})
+          </button>
+        )}
+      </section>
 
       {/* Content */}
       {loading && <GridSkeleton count={PER_PAGE} />}

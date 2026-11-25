@@ -70,15 +70,15 @@ const Schedule = () => {
         <p className="mt-2 text-sm text-gray-300">Episodes airing in the next 7 days, shown in your local time.</p>
       </header>
 
-      <div role="tablist" aria-label="Day" className="flex gap-5 overflow-x-auto border-b border-white/10">
+      <div role="tablist" aria-label="Day" className="liquid flex gap-1 overflow-x-auto rounded-full p-1.5">
         {days.map((d, i) => (
           <button
             key={d.toISOString()}
             role="tab"
             aria-selected={dayIndex === i}
             onClick={() => setDayIndex(i)}
-            className={`-mb-px whitespace-nowrap border-b-2 pb-2 text-sm font-medium transition ${
-              dayIndex === i ? 'border-pink-500 text-white' : 'border-transparent text-gray-400 hover:text-white'
+            className={`whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm font-semibold transition ${
+              dayIndex === i ? 'glass-active' : 'text-white hover:bg-white/10'
             }`}
           >
             {dayLabel(d, i)}
@@ -87,7 +87,7 @@ const Schedule = () => {
       </div>
 
       {error && (
-        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-lg p-8 text-center">
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-3 rounded-2xl p-8 text-center">
           <AlertCircle className="h-8 w-8 text-pink-400" />
           <p className="text-gray-200">{error}</p>
         </div>
@@ -96,7 +96,7 @@ const Schedule = () => {
       {loading && items.length === 0 && (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="skeleton h-24 w-full rounded-lg" />
+            <div key={i} className="skeleton h-24 w-full rounded-2xl" />
           ))}
         </div>
       )}
@@ -110,7 +110,7 @@ const Schedule = () => {
           <li key={`${s.anime.mal_id}-${s.episode}`}>
             <button
               onClick={() => setSelected(s.anime)}
-              className="glass group flex w-full items-center gap-4 rounded-lg p-3 text-left transition hover:border-pink-500/50"
+              className="glass group flex w-full items-center gap-4 rounded-2xl p-3 text-left transition hover:border-pink-500/50"
             >
               <img
                 src={s.anime.images.jpg.image_url}

@@ -51,7 +51,7 @@ const AnimeModal = ({ anime, onClose }) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/65 p-0 sm:items-center sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -63,11 +63,11 @@ const AnimeModal = ({ anime, onClose }) => {
         role="dialog"
         aria-modal="true"
         aria-label={anime.title}
-        className="glass-strong relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-xl shadow-2xl outline-none sm:rounded-xl"
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 40, opacity: 0 }}
-        transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+        className="glass-strong relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-3xl shadow-2xl outline-none sm:rounded-3xl"
+        initial={{ y: 28, scale: 0.98, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={{ y: 28, scale: 0.98, opacity: 0 }}
+        transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
         onClick={(e) => e.stopPropagation()}
       >
         <AnimeDetail anime={anime} onClose={onClose} />

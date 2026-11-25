@@ -31,7 +31,7 @@ export default function Navbar({ onUserChange }) {
   };
 
   return (
-    <header className="glass-strong sticky top-0 z-50 border-x-0 border-t-0">
+    <header className="sticky top-0 z-50 border border-x-0 border-t-0 border-white/10 bg-[#0d0d16]">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         {/* Logo */}
         <Link to="/" className="shrink-0 text-2xl font-extrabold tracking-tight text-white">

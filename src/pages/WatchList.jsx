@@ -125,7 +125,7 @@ const WatchList = () => {
   if (!loading && !user) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16">
-        <div className="glass mx-auto flex max-w-md flex-col items-center gap-4 rounded-xl p-10 text-center">
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-4 rounded-3xl p-10 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-pink-500/20 text-pink-400">
             <LogIn className="h-7 w-7" />
           </div>
@@ -167,7 +167,7 @@ const WatchList = () => {
 
       {watchlist.length > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="glass relative flex flex-1 items-center rounded-lg focus-within:border-pink-500/60">
+          <div className="glass relative flex flex-1 items-center rounded-2xl focus-within:border-pink-500/60">
             <label htmlFor="wl-search" className="sr-only">
               Search your watchlist
             </label>
@@ -201,7 +201,7 @@ const WatchList = () => {
       {loading ? (
         <GridSkeleton count={6} />
       ) : watchlist.length === 0 ? (
-        <div className="glass mx-auto flex max-w-md flex-col items-center gap-4 rounded-xl p-10 text-center">
+        <div className="glass mx-auto flex max-w-md flex-col items-center gap-4 rounded-3xl p-10 text-center">
           <p className="text-lg font-semibold text-gray-100">Your watchlist is empty</p>
           <p className="text-sm text-gray-400">Tap the bookmark on any anime to save it here.</p>
           <Link to="/" className="btn-primary">
@@ -217,7 +217,7 @@ const WatchList = () => {
             const progress = progressOf(anime);
             return (
               <article key={anime.id} className="group">
-                <div className="relative aspect-[2/3] overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-lg transition duration-300 group-hover:border-pink-500/50">
+                <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-lg transition duration-300 group-hover:border-pink-500/50">
                   <img src={anime.image} alt="" loading="lazy" className={`h-full w-full object-cover transition ${watched ? 'opacity-60' : ''}`} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
 

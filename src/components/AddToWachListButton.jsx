@@ -62,7 +62,7 @@ const AddToWatchListButton = ({ anime, variant = 'icon' }) => {
       {message && (
         <div
           role="status"
-          className="absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white shadow-xl ring-1 ring-white/10"
+          className="absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-2xl bg-gray-900 px-3 py-1.5 text-xs text-white shadow-xl ring-1 ring-white/10"
         >
           {message}
         </div>

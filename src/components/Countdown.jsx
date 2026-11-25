@@ -22,10 +22,11 @@ const Countdown = ({ next, className = '' }) => {
   }, [next]);
 
   if (!next) return null;
+  const aired = next.airingAt * 1000 <= now;
   return (
     <span className={`inline-flex items-center gap-1.5 ${className}`}>
       <Clock className="h-3.5 w-3.5" />
-      Ep {next.episode} in {formatRemaining(next.airingAt, now)}
+      {aired ? `Ep ${next.episode} aired` : `Ep ${next.episode} in ${formatRemaining(next.airingAt, now)}`}
     </span>
   );
 };

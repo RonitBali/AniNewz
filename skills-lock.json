@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "apple-design": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple-design/SKILL.md",
+      "computedHash": "83f1764a12784daa0d3982341f549974fb49e13f102f6f18e23241cd925251af"
+    }
+  }
+}
